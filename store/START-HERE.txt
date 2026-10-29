@@ -40,9 +40,20 @@ privacy-policy.html：双语隐私政策网页，默认英文，可展开简体�
 
 本地处理当前网址同样属于需要披露的数据处理。当前实现建议声明 Web history，范围明确为临时处理当前页面 URL；仅保存阅读和语言等偏好。
 
+Privacy policy URL：
+https://timerring.com/back-to-arxiv/store/privacy-policy.html
+
+Support URL：
+https://github.com/timerring/back-to-arxiv/issues
+
+公开仓库：
+https://github.com/timerring/back-to-arxiv
+
+GitHub Pages 从 main 分支发布 store/privacy-policy.html。修改政策并推送到 main 后，线上页面会随部署更新。
+
 提交前需要落实：
-• 将 privacy-policy.html 放到稳定、公开可访问的 HTTPS 地址，并将该地址填入隐私政策专用字段。当前代码仓库是私有的，政策可以单独公开托管。
-• 在开发者后台确认发布者显示名及有效的对外联系方式。政策中的联系段落指向商店里的开发者联系方式；也可以替换成确定的公开支持邮箱或页面。
+• 将上面的 HTTPS 地址填入隐私政策专用字段。
+• 在开发者后台确认发布者显示名及有效的对外联系方式。政策提供 GitHub Issues 作为公开提问入口；私下联系可使用商店中填写的开发者联系方式。
 • 使用已完成开发者注册的账号填写分发范围并提交审核。选择与实际发布计划一致的审核后发布选项。
 
 资料准备完成后，发布动作仍由开发者在后台执行。当前材料不代表已经提交或获批。

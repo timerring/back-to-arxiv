@@ -102,7 +102,9 @@ Run `npm run package:store` to create the extension ZIP and the complete listing
 
 Upload `back-to-arxiv-0.3.0.zip` as the extension. The separate `back-to-arxiv-0.3.0-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
 
-See [the submission guide](store/START-HERE.txt) for fields and assets. Host [the privacy policy](store/privacy-policy.html) at a public HTTPS URL and confirm the publisher contact details before submitting. The source repository can remain private.
+See [the submission guide](store/START-HERE.txt) for fields and assets. Use the public [privacy policy](https://timerring.com/back-to-arxiv/store/privacy-policy.html) in the Chrome Web Store's Privacy policy URL field. Confirm the publisher contact details before submitting. Support is available through [GitHub Issues](https://github.com/timerring/back-to-arxiv/issues).
+
+GitHub Pages publishes the policy directly from `store/privacy-policy.html` on `main`. Updating that file and pushing to `main` updates the live policy. The repository root's `.nojekyll` preserves the static HTML, and `index.html` points visitors to the policy.
 
 Use `npm run store:assets` to render the store graphics from their saved captures and layouts. After UI changes, refresh the captures as described in the guide.
 

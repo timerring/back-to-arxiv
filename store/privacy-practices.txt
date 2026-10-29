@@ -35,11 +35,14 @@ LIMITED USE CERTIFICATIONS
 The three certifications in the current dashboard are consistent with this implementation: data use serves the stated paper-navigation/copying purpose; data is not sold or transferred for unrelated uses; data is not used for creditworthiness or lending decisions. The publisher should review and affirm the certifications when submitting.
 
 PRIVACY POLICY URL
-Publish store/privacy-policy.html at a stable, publicly accessible HTTPS address, then enter that address in the dedicated privacy-policy field.
-The current source repository is private. Its file URLs are unsuitable as public policy or support links. The policy can be hosted separately while the source remains private.
+https://timerring.com/back-to-arxiv/store/privacy-policy.html
+Enter this public HTTPS page in the dedicated privacy-policy field. GitHub Pages publishes store/privacy-policy.html from the main branch, so policy changes are deployed when pushed.
+
+SUPPORT URL
+https://github.com/timerring/back-to-arxiv/issues
 
 CONTACT / PUBLISHER DETAILS
-Choose the publisher's display name and public contact information in the developer dashboard. The prepared policy directs privacy inquiries to the developer contact listed in the store. A public support page or support email can replace that generic contact sentence before hosting.
+Choose the publisher's display name and public contact information in the developer dashboard. The policy provides GitHub Issues for public questions about the policy and extension behavior. Private inquiries can use the developer contact listed in the store when available.
 
 OFFICIAL REFERENCES
 https://developer.chrome.com/docs/webstore/cws-dashboard-privacy

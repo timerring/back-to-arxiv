@@ -104,7 +104,9 @@ CHROMIUM_LOAD_EXTENSION_VIA_CDP=1 npm run test:browser
 
 扩展上传文件为 `back-to-arxiv-0.3.0.zip`。另一个 `back-to-arxiv-0.3.0-store-kit.zip` 包含安装包、中英文介绍、截图、图标、权限说明、审核测试步骤和隐私政策网页；每个 ZIP 都有 SHA-256 校验文件。
 
-填写说明见[上架指南](store/START-HERE.txt)。提交前，将[隐私政策](store/privacy-policy.html)放到公开可访问的 HTTPS 地址，并确认开发者联系方式。代码仓库可以继续保持私有。
+填写说明见[上架指南](store/START-HERE.txt)。在 Chrome Web Store 的 Privacy policy URL 字段填写公开的[隐私政策网址](https://timerring.com/back-to-arxiv/store/privacy-policy.html)，提交前确认开发者联系方式。公开支持入口为 [GitHub Issues](https://github.com/timerring/back-to-arxiv/issues)。
+
+GitHub Pages 直接发布 `main` 分支的 `store/privacy-policy.html`。修改该文件并推送到 `main` 后，线上政策会随之更新。仓库根目录的 `.nojekyll` 保留静态 HTML，`index.html` 将首页访问引导到隐私政策。
 
 使用 `npm run store:assets` 可基于已保存的截图和排版重新渲染商店图片；界面修改后的截图更新步骤见指南。
 
