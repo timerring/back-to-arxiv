@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildArxivUrl, getPaperId, isPaperVersion, parsePaperUrl, type Paper, type PaperVersion, type ReadingFormat } from '../src/paper.ts';
+import { buildArxivUrl, buildMarkdownLink, getPaperId, isPaperVersion, parsePaperInput, parsePaperUrl, type Paper, type PaperVersion, type ReadingFormat } from '../src/paper.ts';
 
 test('all supported alphaXiv routes resolve to the same paper and preserve its version', () => {
   for (const host of ['alphaxiv.org', 'www.alphaxiv.org']) {
@@ -157,4 +157,37 @@ test('version selection accepts only the two supported policies', () => {
     assert.equal(isPaperVersion(value), false);
   }
   assert.throws(() => getPaperId({ id: '1706.03762v0', source: 'arxiv' }, 'latest'), TypeError);
+});
+
+test('explicit input accepts paper URLs, modern and legacy identifiers, and arXiv prefixes', () => {
+  for (const id of ['1706.03762v3', '0706.0001', 'hep-th/9901001v2', 'math.GT/0309136']) {
+    for (const value of [id, `arXiv:${id}`, `ARXIV: ${id}`, ` \n${id}\t `]) {
+      assert.deepEqual(parsePaperInput(value), { id, source: 'arxiv' }, value);
+    }
+    assert.deepEqual(parsePaperInput(` https://www.alphaxiv.org/abs/${id}?utm_source=share#discussion `), { id, source: 'alphaxiv' });
+    assert.deepEqual(parsePaperInput(`https://arxiv.org/pdf/${id}.pdf`), { id, source: 'arxiv' });
+  }
+});
+
+test('explicit input requires a single complete trusted paper reference', () => {
+  for (const input of ['', ' ', 'arXiv:', '1706.03762v0', '1706.03762v03', '1713.03762',
+    'Read arXiv:1706.03762', '1706.03762 2401.12345', '1706.03762\n2401.12345',
+    '[paper](https://arxiv.org/abs/1706.03762)', 'https://arxiv.org.evil.example/abs/1706.03762',
+    'https://user:password@arxiv.org/abs/1706.03762', 'https://arxiv.org:8443/abs/1706.03762',
+    'javascript:alert(1)', 'https://example.org/?paper=1706.03762',
+    `https://arxiv.org/abs/1706.03762?tracking=${'a'.repeat(4096)}`]) {
+    assert.equal(parsePaperInput(input), null, input.slice(0, 100));
+  }
+  assert.equal(parsePaperInput(null as unknown as string), null);
+});
+
+test('Markdown links consistently label the selected version and use the abstract destination', () => {
+  for (const id of ['1706.03762v3', '1706.03762', 'hep-th/9901001v2']) {
+    const paper = parsePaperInput(id)!;
+    assert.equal(buildMarkdownLink(paper), `[arXiv:${id}](https://arxiv.org/abs/${id})`);
+    const latest = id.replace(/v\d+$/, '');
+    assert.equal(buildMarkdownLink(paper, 'latest'), `[arXiv:${latest}](https://arxiv.org/abs/${latest})`);
+    assert.equal(paper.id, id);
+  }
+  assert.throws(() => buildMarkdownLink({ id: 'x](javascript:alert(1))', source: 'arxiv' }), TypeError);
 });

@@ -28,7 +28,7 @@
   "versionNote": { "message": "保留原链接中的版本；未指定版本的链接打开最新论文。" },
   "emptyPaper": { "message": "从一篇论文开始" },
   "waitingPaper": { "message": "等待论文" },
-  "emptyNote": { "message": "打开 alphaXiv 或 arXiv 的论文页面，即可跳转和复制原文链接。" },
+  "emptyNote": { "message": "打开论文页面，或在上方粘贴论文链接或 arXiv 编号。" },
   "savingPreferences": { "message": "正在保存偏好…" },
   "savedPreferences": { "message": "偏好已保存，打开和复制会使用这些设置" },
   "saveFailed": { "message": "保存失败，请重新选择阅读偏好。" },
@@ -60,5 +60,18 @@
   "copyAbsLink": { "message": "复制摘要页链接" },
   "copyPdfLink": { "message": "复制 PDF 链接" },
   "copyHtmlLink": { "message": "复制 HTML 链接（实验性）" },
-  "contextMenuOpen": { "message": "在 arXiv 中打开" }
+  "contextMenuOpen": { "message": "在 arXiv 中打开" },
+  "openFormats": { "message": "临时选择打开格式" },
+  "openFormatMenu": { "message": "仅本次打开为" },
+  "openAbsOnce": { "message": "本次打开摘要页" },
+  "openPdfOnce": { "message": "本次打开 PDF" },
+  "openHtmlOnce": { "message": "本次打开 HTML（实验性）" },
+  "copyMarkdownLink": { "message": "复制 Markdown 链接" },
+  "invalidPaperInput": { "message": "请输入 alphaXiv/arXiv 链接或有效的 arXiv 编号。" },
+  "paperInputLabel": { "message": "粘贴链接或 arXiv 编号" },
+  "paperInputPlaceholder": { "message": "链接或 arXiv:1706.03762v3" },
+  "useCurrentPage": { "message": "使用当前页面" },
+  "inputSource": { "message": "手动输入" },
+  "invalidInputHeading": { "message": "请检查论文链接" },
+  "inputNewTabNote": { "message": "输入的论文会在新标签页打开；输入仅保留在此面板中。" }
 }

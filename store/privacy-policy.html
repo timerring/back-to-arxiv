@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="How Back to arXiv handles paper URLs, local preferences, clipboard actions, and navigation.">
+  <meta name="description" content="How Back to arXiv handles paper URLs and identifiers, local preferences, clipboard actions, and navigation.">
   <title>Back to arXiv — Privacy Policy</title>
   <style>
     :root { color-scheme: light; font-family: system-ui, sans-serif; color: #312a27; background: #faf8f4; }
@@ -18,25 +18,26 @@
 <body>
   <div class="brand">Back to arXiv</div>
   <h1>Privacy Policy</h1>
-  <p class="date">Effective date: October 30, 2026 · Extension version 0.4.0</p>
-  <p>Back to arXiv helps you open or copy arXiv paper links from supported alphaXiv or arXiv pages and hyperlinks. This policy explains the information used by those features.</p>
+  <p class="date">Effective date: October 30, 2026 · Extension version 0.5.0</p>
+  <p>Back to arXiv helps you open or copy arXiv paper links from supported alphaXiv/arXiv pages, hyperlinks, and paper URLs or identifiers you enter in the popup. This policy explains the information used by those features.</p>
 
   <h2>Information used by the extension</h2>
   <ul>
     <li><strong>Current page URLs, selected link URLs, and paper identifiers.</strong> On alphaXiv, the extension reads the page URL to identify a paper and display its controls. When you invoke the toolbar popup or shortcut, it reads the active tab URL to identify a supported paper. When you select Open in arXiv from a paper link's context menu, it reads that link's target URL. These URLs and identifiers are processed in runtime memory for the action you requested.</li>
-    <li><strong>Preferences.</strong> Your reading format, current or latest version preference, choice of current or new tab, and interface language are saved in <code>chrome.storage.local</code> in your browser profile. When Follow browser is selected, the extension reads Chrome's interface language to choose a bundled translation.</li>
-    <li><strong>Generated links.</strong> The main Copy button writes the paper's arXiv abstract-page link to your clipboard. Its adjacent menu can write an Abstract, PDF, or HTML link. Each link uses your selected current or latest version preference. The extension's clipboard operation is a write of the requested link.</li>
+    <li><strong>Paper input.</strong> You can type or paste a paper URL or identifier into the popup. The extension processes that input locally to preview, open, or copy its arXiv link. Entered text stays in popup memory and clears when the popup closes.</li>
+    <li><strong>Preferences.</strong> Your reading format, current or latest version preference, choice of current or new tab, and interface language are saved in <code>chrome.storage.local</code> in your browser profile. When Follow browser is selected, the extension reads Chrome's interface language to choose a bundled translation. A temporary opening format applies to one action and leaves the saved format unchanged.</li>
+    <li><strong>Generated links.</strong> The main Copy button writes the paper's arXiv abstract-page link to your clipboard. Its adjacent menu can write an Abstract, PDF, HTML, or Markdown link. Markdown uses an abstract URL and an <code>arXiv:identifier</code> label generated locally from the paper identifier. Your current or latest version preference applies to both the URL and Markdown label. The extension's clipboard operation is a write of the requested link.</li>
   </ul>
-  <p>The extension does not read paper text, account details, cookies, form contents, or existing clipboard contents. It does not create a stored browsing-history log.</p>
+  <p>Data processing is limited to the URLs, identifiers, and preferences described above. Popup input is supplied by you through the input field. The extension does not read paper text, account details, cookies, webpage form contents, or existing clipboard contents, and it does not create a stored browsing-history log.</p>
 
   <h2>Purpose and processing</h2>
-  <p>URL processing identifies the requested paper and constructs its arXiv link using your version choice. Current version retains an explicit version suffix; Latest version generates an unversioned URL for arXiv to resolve. Preferences determine the format, version, tab behavior, and interface language. This processing occurs in your browser. The extension contains no analytics, advertising, or developer-operated data collection service.</p>
+  <p>URL and identifier processing identifies the requested paper and constructs its arXiv link using your version choice. Current version retains an explicit version suffix; Latest version generates an unversioned URL for arXiv to resolve. Preferences determine the default format, version, current-page tab behavior, and interface language. Manual input and context-menu links always open in a new tab. Temporary opening formats apply to one action. Markdown labels use the identifier directly. This processing occurs in your browser. The extension contains no analytics, advertising, or developer-operated data collection service.</p>
 
   <h2>Navigation to other websites</h2>
   <p>When you choose an opening action through the page controls, popup, shortcut, or link context menu, your browser sends an HTTPS request to <code>arxiv.org</code> for the selected paper. That request includes the paper path and ordinary browser connection information, such as the IP address and request headers. The destination website handles that visit under its own privacy practices. Browsing alphaXiv is likewise subject to that website's practices.</p>
 
   <h2>Retention and your controls</h2>
-  <p>Current page URLs, selected link URLs, and paper identifiers are used transiently while the relevant extension context is running. Saved preferences remain in the browser's extension storage until you change them, clear that storage, or remove the extension. You can change these preferences in the popup. Removing the extension clears its local extension storage.</p>
+  <p>Current page URLs, selected link URLs, and paper identifiers are used transiently while the relevant extension context is running. URLs and identifiers entered in the popup stay in its memory; clearing the input or closing the popup clears them. Saved preferences remain in the browser's extension storage until you change them, clear that storage, or remove the extension. You can change these preferences in the popup. Removing the extension clears its local extension storage.</p>
   <p>A copied link follows your operating system's clipboard behavior. You can replace the clipboard contents by copying other text. The extension does not manage your browser history or operating system clipboard history.</p>
 
   <h2>Limited Use</h2>
@@ -48,17 +49,18 @@
   <details lang="zh-CN">
     <summary>简体中文说明</summary>
     <h2>隐私政策</h2>
-    <p class="date">生效日期：2026 年 10 月 30 日 · 扩展版本 0.4.0</p>
-    <p>Back to arXiv 帮助你从受支持的 alphaXiv、arXiv 论文页面或链接打开与复制 arXiv 原文地址。</p>
+    <p class="date">生效日期：2026 年 10 月 30 日 · 扩展版本 0.5.0</p>
+    <p>Back to arXiv 帮助你从受支持的 alphaXiv、arXiv 论文页面、链接，以及在面板中输入的论文网址或编号，打开与复制 arXiv 原文地址。</p>
     <h3>扩展处理的信息</h3>
-    <p>扩展在 alphaXiv 页面读取当前网址，以识别论文并显示操作按钮。调用工具栏面板或快捷键时，扩展读取当前标签页网址；在论文链接上选择“在 arXiv 中打开”右键操作时，扩展读取该链接的目标网址。这些地址及提取的论文编号在运行时内存中用于完成请求的操作。阅读格式、当前或最新版本偏好、标签页打开方式和界面语言通过 <code>chrome.storage.local</code> 保存在本地浏览器中。选择“跟随浏览器”时，扩展读取 Chrome 的界面语言来选择内置翻译。主复制按钮将生成的摘要页链接写入剪贴板；旁边的菜单可写入摘要、PDF 或 HTML 链接，均采用所选版本偏好。</p>
-    <p>扩展不读取论文正文、账户信息、Cookie、表单内容或剪贴板已有内容，也不保存浏览历史记录。扩展没有分析统计、广告或开发者运营的数据收集服务。</p>
+    <p>扩展在 alphaXiv 页面读取当前网址，以识别论文并显示操作按钮。调用工具栏面板或快捷键时，扩展读取当前标签页网址；在论文链接上选择“在 arXiv 中打开”右键操作时，扩展读取该链接的目标网址。这些地址及提取的论文编号在运行时内存中用于完成请求的操作。你也可以在面板主动输入或粘贴论文网址或编号，供本地预览、打开与复制使用；输入仅保留在面板内存，关闭面板即清空。</p>
+    <p>阅读格式、当前或最新版本偏好、标签页打开方式和界面语言通过 <code>chrome.storage.local</code> 保存在本地浏览器中。选择“跟随浏览器”时，扩展读取 Chrome 的界面语言来选择内置翻译。临时打开格式仅用于本次操作，保存的格式保持原值。主复制按钮将摘要页链接写入剪贴板；旁边的菜单可写入摘要、PDF、HTML 或 Markdown 链接。Markdown 使用摘要页地址，以 <code>arXiv:论文编号</code> 为标签，由编号在本地生成。标签与地址一起遵循当前／最新版本偏好。</p>
+    <p>扩展仅处理上述网址、编号和偏好，面板输入由你通过输入框主动提供。扩展不读取论文正文、账户信息、Cookie、网页表单内容或剪贴板已有内容，也不保存浏览历史记录。扩展没有分析统计、广告或开发者运营的数据收集服务。</p>
     <h3>处理目的</h3>
-    <p>扩展在本地识别论文并生成 arXiv 地址。当前版本保留明确的版本号；最新版本生成省略版本号的链接，由 arXiv 提供最新版本。阅读格式、版本和打开方式决定目标链接与标签页行为，语言偏好决定界面文案。</p>
+    <p>扩展在本地识别论文并生成 arXiv 地址。当前版本保留明确的版本号；最新版本生成省略版本号的链接，由 arXiv 提供最新版本。偏好决定默认阅读格式、版本、当前页面操作的标签页行为及界面语言。手动输入和右键链接始终在新标签页打开，临时打开格式仅用于本次操作，Markdown 标签直接使用论文编号。</p>
     <h3>访问第三方网站</h3>
     <p>通过页面控件、面板、快捷键或链接右键菜单打开论文时，浏览器通过 HTTPS 请求 <code>arxiv.org</code> 的目标论文页面。该请求包含论文路径，以及 IP 地址、请求头等常规连接信息。arXiv 和 alphaXiv 分别按照各自的隐私规则处理网站访问。</p>
     <h3>保存期限与控制</h3>
-    <p>当前页面网址、主动选择的链接目标网址及论文编号在相关扩展上下文运行期间临时使用。偏好保存在扩展的本地存储中，可在面板修改；清除扩展存储或移除扩展会删除这些偏好。复制的链接遵循操作系统的剪贴板机制，可通过复制其他内容替换。浏览器历史记录和系统剪贴板历史由相应软件管理。</p>
+    <p>当前页面网址、主动选择的链接目标网址及论文编号在相关扩展上下文运行期间临时使用。面板输入的网址与编号仅保留在面板内存，清空输入或关闭面板即清除。偏好保存在扩展的本地存储中，可在面板修改；清除扩展存储或移除扩展会删除这些偏好。复制的链接遵循操作系统的剪贴板机制，可通过复制其他内容替换。浏览器历史记录和系统剪贴板历史由相应软件管理。</p>
     <h3>有限使用与联系</h3>
     <p>通过 Chrome API 获得的信息仅用于已声明的论文跳转和链接复制功能，遵守 Chrome Web Store 用户数据政策及其 Limited Use 要求。用户数据不用于销售、广告、信用评估或贷款资格判断。数据处理方式变化时，本政策会相应更新。如对政策有疑问，可通过 <a href="https://github.com/timerring/back-to-arxiv/issues">Back to arXiv 的 GitHub Issues</a> 联系维护者。Issues 内容公开可见，请将问题限定为政策及扩展行为说明。需要私下联系时，可在商店页面提供开发者联系方式后使用该渠道。</p>
   </details>

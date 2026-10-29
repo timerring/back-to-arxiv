@@ -7,36 +7,41 @@ Default listing language
 English
 
 Version
-0.4.0
+0.5.0
 
 Short description (matches the extension manifest; 118 characters)
 Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut.
 
 DETAILED DESCRIPTION — COPY THE TEXT BELOW
 
-Go from an alphaXiv paper to its arXiv page in one click. Back to arXiv adds a small page button, a toolbar popup, and an action for paper links in Chrome's right-click menu.
+Go from an alphaXiv paper to its arXiv page in one click, or paste a paper link or identifier in the toolbar popup. Back to arXiv gives you page controls, a popup, a keyboard shortcut, and an action for paper links in Chrome's right-click menu.
+
+Paste a paper from anywhere
+Enter a supported alphaXiv or arXiv URL, a modern identifier such as 1706.03762v3, a legacy identifier such as hep-th/9901001v2, or arXiv:1706.03762v3. The preview updates as you type. Opening an entered paper always uses a new tab, keeping your source page open. Clear the input to return to the current page. Entered text stays in memory while the popup is open and clears when it closes. Invalid input disables opening and copying until corrected or cleared.
 
 Choose how you read
 • Open the arXiv abstract page, PDF, or HTML (experimental).
-• Use the current tab or open a new one with the page button, popup, or shortcut.
-• Save your reading format and paper-version preference once and use them across the extension.
+• Save your preferred format and current-tab or new-tab behavior.
+• Use the arrow beside Open in the popup or on an alphaXiv page to choose a format for one action. Your saved reading format stays the same.
+
+Keep a version or open the latest
+Current version keeps an explicit suffix such as v3. Latest version creates an unversioned link that arXiv resolves to the newest version. This choice applies to opening and copying, including pasted input and temporary format choices. A source link without a version remains unversioned.
+
+Copy links for reading and notes
+The main Copy action copies the abstract-page link. The copy menu offers Abstract, PDF, HTML, and Markdown. Markdown uses the abstract URL with the paper identifier as its label, for example:
+[arXiv:1706.03762v3](https://arxiv.org/abs/1706.03762v3)
+The version preference applies to both the label and destination. Links are generated locally with tracking parameters and discussion anchors removed. Copying leaves your saved reading format unchanged.
 
 Open a paper straight from a link
-Right-click a supported alphaXiv or arXiv paper link on another webpage and choose Open in arXiv. Your selected format and version open in a new tab, keeping the source page available.
+Right-click a supported alphaXiv or arXiv paper link on another webpage and choose Open in arXiv. The paper opens in a new tab using your saved format and version preference.
 
-Choose the current or latest version
-Current version is the default: a link containing v3 keeps v3 when you open or copy it. Choose Latest version to generate an unversioned link that arXiv resolves to its latest paper version. A source link without a version stays unversioned. Modern and legacy arXiv identifiers are supported.
-
-Copy the link you need
-The main Copy original link button copies the arXiv abstract-page link. Use the adjacent arrow menu in the popup or on the page to copy an Abstract, PDF, or HTML link. Each copy action uses your selected version preference and leaves your default reading format unchanged. Generated links keep the paper identifier and remove source tracking parameters and discussion anchors.
-
-Use a shortcut
-Press Alt+Shift+A on Windows/Linux or Option+Shift+A on macOS to open the current paper. Customize the assigned shortcut through the popup or Chrome's extension shortcut settings. The popup and shortcut also work on supported arXiv paper pages.
+Use a keyboard shortcut
+Press Alt+Shift+A on Windows/Linux or Option+Shift+A on macOS. You can change the shortcut in Chrome's extension shortcut settings. The popup and shortcut also work on arXiv paper pages.
 
 English and Simplified Chinese
-The interface starts in English. Choose English, 简体中文, or Follow browser in the popup. Language changes also update the page controls and right-click menu.
+The interface starts in English. Choose English, 简体中文, or Follow browser in the popup. The language choice also updates page controls and the right-click menu.
 
-Simple, local preferences
-Reading format, version, tab-opening, and language preferences are saved in your browser. The extension converts paper URLs locally; opening a paper takes you directly to arXiv. Start by pinning Back to arXiv and opening an alphaXiv paper, or right-click a paper link.
+Local preferences
+Reading format, version, tab behavior, and language are saved in your browser. Paper links and identifiers are processed locally, and opening a paper navigates directly to arXiv. Clipboard access writes a link only when you request a copy.
 
-HTML availability depends on the paper and version supported by arXiv. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for research reading.
+HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for paper readers.

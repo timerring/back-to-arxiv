@@ -63,6 +63,17 @@ export function parsePaperUrl(value: string): Paper | null {
   return PAPER_ID.test(id) ? { id, source } : null;
 }
 
+/** Accept one explicitly entered paper URL or identifier. */
+export function parsePaperInput(value: string): Paper | null {
+  if (typeof value !== 'string') return null;
+  const input = value.trim();
+  if (input.length === 0 || input.length > 4096) return null;
+  const paper = parsePaperUrl(input);
+  if (paper !== null) return paper;
+  const id = input.replace(/^arxiv:\s*/i, '');
+  return PAPER_ID.test(id) ? { id, source: 'arxiv' } : null;
+}
+
 /** Resolve the requested version while retaining the source paper identifier. */
 export function getPaperId(paper: Paper, version: PaperVersion = 'current'): string {
   if (typeof paper?.id !== 'string' || PAPER_ID.test(paper.id) === false) {
@@ -81,4 +92,9 @@ export function buildArxivUrl(paper: Paper, format: ReadingFormat, version: Pape
     throw new TypeError('The reading format must be abs, pdf or html.');
   }
   return `https://arxiv.org/${format}/${id}`;
+}
+
+/** A stable, title-free Markdown citation to the selected abstract page. */
+export function buildMarkdownLink(paper: Paper, version: PaperVersion = 'current'): string {
+  return `[arXiv:${getPaperId(paper, version)}](${buildArxivUrl(paper, 'abs', version)})`;
 }

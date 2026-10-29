@@ -1,38 +1,38 @@
-BACK TO ARXIV 0.4.0 — PRIVACY TAB FILLING GUIDE
+BACK TO ARXIV 0.5.0 — PRIVACY TAB FILLING GUIDE
 Prepared from the implementation and Chrome Web Store documentation on 2026-10-30.
 
 SINGLE PURPOSE — PASTE THIS
-Help users open or copy a paper's arXiv link from a supported alphaXiv or arXiv page or hyperlink, using their chosen abstract, PDF, or experimental HTML format and current or latest paper version. Users invoke these actions through page controls, the toolbar popup, a keyboard shortcut, or a paper link's context menu.
+Help users open or copy a paper's arXiv link from a supported alphaXiv/arXiv page, hyperlink, or paper URL or identifier they enter in the popup. Opening supports abstract, PDF, and experimental HTML formats; copying also offers Markdown. Actions use the chosen current or latest paper version and are invoked through page controls, the popup, a shortcut, or a paper link's context menu.
 
 STORAGE PERMISSION — PASTE THIS
-Saves the selected reading format, current or latest version preference, current-tab or new-tab preference, and interface language in chrome.storage.local. These settings stay in the user's browser. The saved format and version are shared across opening actions; the version preference also applies to copied links.
+Saves reading format, current or latest version preference, current-tab or new-tab preference, and interface language in chrome.storage.local. These four settings stay in the user's browser. A temporary opening format applies to one action; paper input stays in popup memory and clears when it closes. The version preference applies to both opening and copying.
 
 ACTIVETAB PERMISSION — PASTE THIS
 Reads the current tab URL when the user invokes the toolbar action or keyboard shortcut, identifies a supported paper, and opens or copies its corresponding arXiv link. It also lets the popup display the current paper identifier and destination URL.
 
 CLIPBOARDWRITE PERMISSION — PASTE THIS
-Writes a generated arXiv abstract, PDF, or HTML link when the user invokes a copy action. The main Copy button uses the abstract format; its adjacent menu offers all three formats. Each generated link uses the selected current or latest version preference. Clipboard access is limited to writing the requested link.
+Writes a generated arXiv abstract, PDF, HTML, or Markdown link when the user invokes a copy action. The main Copy button uses the abstract format. Markdown uses an abstract URL with an arXiv:identifier label, generated locally. The current or latest version preference applies to the URL and Markdown label. Clipboard access is limited to writing the requested link; paper input is provided by the user through the popup field.
 
 CONTEXTMENUS PERMISSION — PASTE THIS
 Adds Open in arXiv to the context menu for supported alphaXiv and arXiv paper links. When the user selects this action, the extension reads that link's target URL, identifies the paper locally, and opens its arXiv link in a new tab using the saved reading format and version preference.
 
 ALPHAXIV SITE ACCESS — PASTE IF A HOST JUSTIFICATION FIELD IS SHOWN
-Runs on https://alphaxiv.org/* and https://www.alphaxiv.org/* to identify paper URLs, display the Open arXiv and copy controls, and keep those controls accurate when the user navigates between papers within the site.
+Runs on https://alphaxiv.org/* and https://www.alphaxiv.org/* to identify paper URLs, display Open arXiv and copy controls with their format menus, and keep those controls accurate when the user navigates between papers within the site.
 
-Implementation note: these are content_scripts.matches. The manifest requests storage, activeTab, clipboardWrite, and contextMenus. Site access is scoped through the content-script matches.
+Implementation note: these are content_scripts.matches. The manifest requests storage, activeTab, clipboardWrite, and contextMenus. Version 0.5 retains version 0.4's permissions and content-script site access.
 
 REMOTE CODE
 Select: No, I am not using remote code.
 Explanation: All JavaScript, CSS, interface text, and icons are bundled with the extension. Opening an arXiv page is ordinary browser navigation. Extension functionality executes from the installed package.
 
 DATA USAGE CATEGORIES
-Recommended selection for the current code: Web history (current page URLs and target URLs of paper links explicitly invoked through the context menu).
+Recommended selection for the current code: Web history (current page URLs, target URLs of paper links explicitly invoked through the context menu, and paper URLs the user enters in the popup).
 Keep the other categories unselected based on the current implementation.
 
-This recommendation includes transient local URL processing. Browsing-history records are outside the extension's stored data. Chrome's User Data FAQ requires disclosure even for data processed or stored only on the device. Match the wording of the live dashboard to this behavior when completing the form.
+This recommendation includes transient local URL processing. Entered URLs and paper identifiers are held in popup memory and clear when the popup closes. Browsing-history records are outside the extension's stored data. Chrome's User Data FAQ requires disclosure even for data processed or stored only on the device. Match the wording of the live dashboard to this behavior when completing the form.
 
 DATA HANDLING / REVIEWER EXPLANATION — PASTE THIS WHERE APPLICABLE
-The extension reads the current alphaXiv URL to display controls and the active tab URL when the user invokes the popup or shortcut. The context-menu action reads the target URL of the paper link the user chose. URLs and paper identifiers are processed transiently in memory to construct arXiv links. Saved data consists of reading-format, version, tab-opening, and language preferences. Follow browser reads Chrome's interface language to select a bundled translation. Copy actions write a requested paper link to the clipboard. Latest version constructs an unversioned URL locally. Opening a paper navigates to arxiv.org over HTTPS, where that site's privacy practices apply. The extension's data handling is local; executable resources are bundled with the package.
+The extension reads alphaXiv URLs for page controls, the active tab URL for popup/shortcut actions, and the target URL of a paper link chosen through the context menu. Users may enter a paper URL or identifier in the popup. URLs and identifiers are processed locally in memory; popup input clears when it closes. Saved data consists of format, version, tab, and language preferences. Temporary formats apply to one action. Follow browser reads Chrome's interface language to select a bundled translation. Copy actions write the requested link; Markdown uses a local identifier label and abstract URL. Latest version creates an unversioned URL locally. Opening navigates to arxiv.org over HTTPS, where that site's privacy practices apply. Executable resources are bundled with the extension.
 
 LIMITED USE CERTIFICATIONS
 The three certifications in the current dashboard are consistent with this implementation: data use serves the stated paper-navigation/copying purpose; data is not sold or transferred for unrelated uses; data is not used for creditworthiness or lending decisions. The publisher should review and affirm the certifications when submitting.

@@ -24,6 +24,11 @@
       </header>
 
       <section class="paper-card" aria-labelledby="paper-label">
+        <label class="sr-only" for="paper-input" data-i18n="paperInputLabel">Paste a link or arXiv ID</label>
+        <div class="paper-input-row">
+          <input id="paper-input" type="text" placeholder="Link or arXiv:1706.03762v3" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-describedby="status" aria-invalid="false" />
+          <button id="use-current-page" type="button" data-i18n="useCurrentPage" hidden>Use current page</button>
+        </div>
         <div class="paper-meta">
           <span id="paper-label" data-i18n="currentPaper">Current paper</span>
           <span id="paper-source" class="source" data-i18n="identifyingSource">Reading page</span>
@@ -33,11 +38,21 @@
       </section>
 
       <div class="actions">
-        <button id="open-paper" class="button primary" type="button" disabled>
-          <span id="open-label" data-i18n="openArxiv">Open arXiv</span>
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
-        </button>
-        <div id="copy-actions" class="copy-actions">
+        <div id="open-actions" class="split-actions open-actions">
+          <button id="open-paper" class="button primary" type="button" disabled>
+            <span id="open-label" data-i18n="openArxiv">Open arXiv</span>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <button id="open-menu-toggle" class="button primary" type="button" aria-label="Open another format once" data-i18n-aria-label="openFormats" aria-haspopup="menu" aria-controls="open-menu" aria-expanded="false" disabled>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 12 4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <div id="open-menu" class="action-menu" role="menu" aria-label="Open once as" data-i18n-aria-label="openFormatMenu" hidden>
+            <button id="open-abs" type="button" role="menuitem" tabindex="-1" data-open-format="abs" data-i18n="openAbsOnce">Open abstract once</button>
+            <button id="open-pdf" type="button" role="menuitem" tabindex="-1" data-open-format="pdf" data-i18n="openPdfOnce">Open PDF once</button>
+            <button id="open-html" type="button" role="menuitem" tabindex="-1" data-open-format="html" data-i18n="openHtmlOnce">Open HTML once (experimental)</button>
+          </div>
+        </div>
+        <div id="copy-actions" class="split-actions copy-actions">
           <button id="copy-link" class="button secondary" type="button" disabled>
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.4" /><path d="M12 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.4" /></svg>
             <span data-i18n="copyLink">Copy original link</span>
@@ -45,10 +60,11 @@
           <button id="copy-menu-toggle" class="button secondary" type="button" aria-label="More copy formats" data-i18n-aria-label="copyFormats" aria-haspopup="menu" aria-controls="copy-menu" aria-expanded="false" disabled>
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 12 4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </button>
-          <div id="copy-menu" class="copy-menu" role="menu" aria-label="Copy link format" data-i18n-aria-label="copyFormatMenu" hidden>
+          <div id="copy-menu" class="action-menu" role="menu" aria-label="Copy link format" data-i18n-aria-label="copyFormatMenu" hidden>
             <button id="copy-abs" type="button" role="menuitem" tabindex="-1" data-copy-format="abs" data-i18n="copyAbsLink">Copy abstract link</button>
             <button id="copy-pdf" type="button" role="menuitem" tabindex="-1" data-copy-format="pdf" data-i18n="copyPdfLink">Copy PDF link</button>
             <button id="copy-html" type="button" role="menuitem" tabindex="-1" data-copy-format="html" data-i18n="copyHtmlLink">Copy HTML link (experimental)</button>
+            <button id="copy-markdown" type="button" role="menuitem" tabindex="-1" data-copy-format="markdown" data-i18n="copyMarkdownLink">Copy Markdown link</button>
           </div>
         </div>
       </div>

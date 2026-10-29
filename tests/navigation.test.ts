@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
-import { openPaperLink, openPaperTab } from '../src/navigation.ts';
+import { openPaperInput, openPaperLink, openPaperTab } from '../src/navigation.ts';
 import { translate } from '../src/i18n.ts';
 import type { Preferences } from '../src/settings.ts';
 
@@ -195,4 +195,46 @@ test('unsupported and misleading context links leave browser tabs intact', async
 test('context-link tab creation failures are returned to the caller', async () => {
   chrome.tabs.create = async () => { throw new Error('Browser unavailable'); };
   await assert.rejects(() => openPaperLink('https://alphaxiv.org/abs/1706.03762v3', paperTab()), /Browser unavailable/);
+});
+
+test('temporary formats preserve saved preferences and respect the current-page tab policy', async () => {
+  preferences = { format: 'abs', version: 'latest', openInNewTab: false, language: 'en' };
+  const saved = structuredClone(preferences);
+  await openPaperTab(paperTab(), 'pdf');
+  assert.deepEqual(updates, [{ id: 42, properties: { url: 'https://arxiv.org/pdf/1706.03762' } }]);
+  assert.deepEqual(preferences, saved);
+  preferences.openInNewTab = true;
+  await openPaperTab(paperTab(), 'html');
+  assert.equal(creates[0]?.url, 'https://arxiv.org/html/1706.03762');
+  assert.equal(preferences.format, 'abs');
+});
+
+test('explicit input opens a new tab next to an unrelated source even with current-tab defaults', async () => {
+  latestTab = paperTab({ url: 'https://example.org/inbox' });
+  const saved = structuredClone(preferences);
+  await openPaperInput(' arXiv:hep-th/9901001v2 ', latestTab, 'pdf');
+  assert.deepEqual(creates, [{ url: 'https://arxiv.org/pdf/hep-th/9901001v2', active: true, openerTabId: 42, index: 3, windowId: 9 }]);
+  assert.deepEqual(updates, []);
+  assert.deepEqual(preferences, saved);
+});
+
+test('explicit input uses saved version and format and supports a closed or absent source', async () => {
+  preferences = { format: 'html', version: 'latest', openInNewTab: false, language: 'en' };
+  await openPaperInput('https://alphaxiv.org/abs/1706.03762v3');
+  chrome.tabs.get = async () => { throw new Error('Tab closed'); };
+  await openPaperInput('1706.03762v3', paperTab());
+  assert.deepEqual(creates, [
+    { url: 'https://arxiv.org/html/1706.03762', active: true },
+    { url: 'https://arxiv.org/html/1706.03762', active: true },
+  ]);
+});
+
+test('invalid explicit input and temporary formats leave tabs intact', async () => {
+  for (const input of ['not a paper', '1706.03762v0', 'https://evil.example/abs/1706.03762']) {
+    await assert.rejects(() => openPaperInput(input, paperTab()), { message: translate('invalidPaperInput', 'en') });
+  }
+  await assert.rejects(() => openPaperTab(paperTab(), 'bad-format' as 'pdf'), TypeError);
+  await assert.rejects(() => openPaperInput('1706.03762v3', paperTab(), 'bad-format' as 'pdf'), TypeError);
+  assert.deepEqual(creates, []);
+  assert.deepEqual(updates, []);
 });

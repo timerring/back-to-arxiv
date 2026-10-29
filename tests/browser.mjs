@@ -47,13 +47,15 @@ async function assertPopupFits(popup) {
   assert.equal(await popup.locator('body').evaluate((body) => body.scrollWidth), 360);
 }
 
-async function assertCopyMenuFits(popup) {
+async function assertMenuFits(popup, name) {
   await assertPopupFits(popup);
   const body = await popup.locator('body').boundingBox();
-  const menu = await popup.locator('#copy-menu').boundingBox();
+  const menu = await popup.locator(`#${name}-menu`).boundingBox();
   assert.ok(body && menu && menu.y >= 0 && menu.x >= 0 && menu.y + menu.height <= body.height && menu.x + menu.width <= 360,
-    'Expanded copy menu fits inside the real popup bounds');
+    `Expanded ${name} menu fits inside the real popup bounds`);
 }
+
+const assertCopyMenuFits = (popup) => assertMenuFits(popup, 'copy');
 
 async function readClipboard(paper) {
   await paper.bringToFront();
@@ -253,6 +255,11 @@ try {
     await popup.locator('#copy-link').click();
     await popup.waitForFunction(() => document.getElementById('copy-link')?.disabled === false);
     assert.equal(await readClipboard(paper), `https://arxiv.org/abs/${id}`);
+    await popup.bringToFront();
+    await popup.locator('#copy-menu-toggle').click();
+    await popup.locator('#copy-markdown').click();
+    await popup.waitForFunction(() => document.getElementById('copy-link')?.disabled === false);
+    assert.equal(await readClipboard(paper), `[arXiv:${id}](https://arxiv.org/abs/${id})`);
   }
   console.log('PASS: popup copies all three formats for current/latest versions while retaining the reading format.');
 
@@ -266,10 +273,10 @@ try {
   assert.equal(await popup.locator('#copy-menu').isHidden(), true);
   await popup.locator('#copy-menu-toggle').press('ArrowDown');
   await popup.locator('#copy-abs').press('End');
-  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'copy-html');
-  await popup.locator('#copy-html').press('Enter');
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'copy-markdown');
+  await popup.locator('#copy-markdown').press('Enter');
   await popup.waitForFunction(() => document.getElementById('copy-link')?.disabled === false);
-  assert.equal(await readClipboard(paper), 'https://arxiv.org/html/1706.03762');
+  assert.equal(await readClipboard(paper), '[arXiv:1706.03762](https://arxiv.org/abs/1706.03762)');
   console.log('PASS: copy menus support Escape, outside clicks, and keyboard selection.');
 
   // The already-open page receives the same version preference and copy choices.
@@ -332,19 +339,181 @@ try {
   assert.equal(await paper.locator('#back-to-arxiv-root').count(), 0);
   console.log('PASS: the page button opens HTML in the current tab while preserving the requested version.');
 
+  // Temporary page actions are real links with the same version/tab preferences.
+  await setPreferences({ format: 'abs', openInNewTab: false, version: 'current', language: 'en' });
+  await paper.goto('https://www.alphaxiv.org/abs/hep-th/9901001v2');
+  await waitForLink(paper, 'https://arxiv.org/abs/hep-th/9901001v2');
+  await paper.setViewportSize({ width: 320, height: 650 });
+  await paper.locator('#back-to-arxiv-root #open-menu-toggle').click();
+  for (const format of ['abs', 'pdf', 'html']) {
+    assert.equal(await paper.locator(`#back-to-arxiv-root #open-${format}`).getAttribute('href'), `https://arxiv.org/${format}/hep-th/9901001v2`);
+  }
+  const dockMenu = await paper.locator('#back-to-arxiv-root #open-menu').boundingBox();
+  assert.ok(dockMenu && dockMenu.x >= 0 && dockMenu.x + dockMenu.width <= 320 && dockMenu.y >= 0);
+  await paper.locator('#back-to-arxiv-root #copy-menu-toggle').click();
+  assert.equal(await paper.locator('#back-to-arxiv-root #open-menu').isHidden(), true);
+  await paper.locator('#back-to-arxiv-root #open-menu-toggle').press('ArrowDown');
+  assert.equal(await paper.locator('#back-to-arxiv-root #copy-menu').isHidden(), true);
+  await paper.locator('#back-to-arxiv-root #open-abs').press('End');
+  assert.equal(await paper.evaluate(() => document.querySelector('#back-to-arxiv-root')?.shadowRoot?.activeElement?.id), 'open-html');
+  await paper.locator('#back-to-arxiv-root #open-html').press('Escape');
+  assert.equal(await paper.evaluate(() => document.querySelector('#back-to-arxiv-root')?.shadowRoot?.activeElement?.id), 'open-menu-toggle');
+  await paper.locator('#back-to-arxiv-root #open-menu-toggle').click();
+  await paper.locator('#back-to-arxiv-root #open-pdf').click();
+  await paper.waitForURL('https://arxiv.org/pdf/hep-th/9901001v2');
+  assert.equal((await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences)).format, 'abs');
+  await paper.setViewportSize({ width: 1280, height: 800 });
+  await setPreferences({ format: 'abs', openInNewTab: true, version: 'latest', language: 'en' });
+  await paper.goto('https://www.alphaxiv.org/abs/hep-th/9901001v2');
+  await waitForLink(paper, 'https://arxiv.org/abs/hep-th/9901001');
+  await paper.locator('#back-to-arxiv-root #open-menu-toggle').click();
+  const [oneOffHtml] = await Promise.all([
+    context.waitForEvent('page'),
+    paper.locator('#back-to-arxiv-root #open-html').click({ button: 'middle' }),
+  ]);
+  await oneOffHtml.waitForURL('https://arxiv.org/html/hep-th/9901001', { waitUntil: 'commit' });
+  await oneOffHtml.close();
+  assert.equal(paper.url(), 'https://www.alphaxiv.org/abs/hep-th/9901001v2');
+  for (const version of ['latest', 'current']) {
+    await setPreferences({ format: 'abs', openInNewTab: true, version, language: 'en' });
+    const id = version === 'latest' ? 'hep-th/9901001' : 'hep-th/9901001v2';
+    await waitForLink(paper, `https://arxiv.org/abs/${id}`);
+    await paper.bringToFront();
+    await paper.locator('#back-to-arxiv-root #copy-menu-toggle').click();
+    await paper.locator('#back-to-arxiv-root #copy-markdown').click();
+    await paper.waitForFunction(() => document.querySelector('#back-to-arxiv-root')?.shadowRoot?.querySelector('#copy-link')?.disabled === false);
+    assert.equal(await readClipboard(paper), `[arXiv:${id}](https://arxiv.org/abs/${id})`);
+  }
+  console.log('PASS: page temporary formats preserve defaults, support native middle-click and narrow screens; Markdown honors current/latest legacy IDs.');
+
+  popup = await openPopup(context, paper, extensionId);
+  await popup.locator('#open-menu-toggle').click();
+  await assertMenuFits(popup, 'open');
+  await popup.locator('#copy-menu-toggle').click();
+  assert.equal(await popup.locator('#open-menu').isHidden(), true);
+  await popup.locator('#open-menu-toggle').press('ArrowUp');
+  assert.equal(await popup.locator('#copy-menu').isHidden(), true);
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'open-html');
+  await popup.locator('#open-html').press('Home');
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'open-abs');
+  await popup.locator('#open-abs').press('Escape');
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'open-menu-toggle');
+  await popup.locator('#open-menu-toggle').click();
+  const [oneOffPdf] = await Promise.all([context.waitForEvent('page'), popup.locator('#open-pdf').click()]);
+  await oneOffPdf.waitForURL('https://arxiv.org/pdf/hep-th/9901001v2', { waitUntil: 'commit' });
+  await oneOffPdf.close();
+  if (popup.isClosed() === false) await popup.close();
+  assert.equal((await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences)).format, 'abs');
+  popup = await openPopup(context, paper, extensionId);
+  await popup.locator('#new-tab').uncheck();
+  await popup.waitForFunction(() => document.getElementById('new-tab')?.disabled === false);
+  await popup.locator('#open-menu-toggle').click();
+  await popup.locator('#open-html').click();
+  await paper.waitForURL('https://arxiv.org/html/hep-th/9901001v2', { waitUntil: 'commit' });
+  if (popup.isClosed() === false) await popup.close();
+  assert.equal((await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences)).format, 'abs');
+  console.log('PASS: popup temporary formats obey both tab modes and keep the saved format; open/copy menus are keyboard accessible and mutually exclusive.');
+
+  // Explicit text takes precedence even while the source page changes.
+  await paper.goto('https://www.alphaxiv.org/abs/1706.03762v3');
+  await waitForLink(paper, 'https://arxiv.org/abs/1706.03762v3');
+  popup = await openPopup(context, paper, extensionId);
+  await popup.locator('#paper-input').fill('not a paper');
+  for (const id of ['open-paper', 'open-menu-toggle', 'copy-link', 'copy-menu-toggle']) assert.equal(await popup.locator(`#${id}`).isDisabled(), true);
+  assert.equal(await popup.locator('#paper-input').getAttribute('aria-invalid'), 'true');
+  await popup.locator('#paper-input').fill('arXiv:2301.12345v2');
+  await paper.evaluate(() => history.pushState({}, '', '/abs/hep-th/9901001v2'));
+  await waitForLink(paper, 'https://arxiv.org/abs/hep-th/9901001v2');
+  assert.equal(await popup.locator('#paper-id').innerText(), '2301.12345v2');
+  await popup.locator('#open-menu-toggle').click();
+  await popup.locator('#paper-input').fill('wrong');
+  assert.equal(await popup.locator('#open-menu').isHidden(), true);
+  await popup.locator('#use-current-page').click();
+  await popup.waitForFunction(() => document.getElementById('paper-id')?.textContent === 'hep-th/9901001v2');
+  assert.equal(await popup.locator('#open-paper').isEnabled(), true);
+  assert.equal(await popup.locator('#new-tab').isChecked(), false);
+  await popup.locator('#paper-input').fill('1706.03762v3');
+  await popup.close();
+  popup = await openPopup(context, paper, extensionId);
+  assert.equal(await popup.locator('#paper-input').inputValue(), '');
+  await popup.close();
+  console.log('PASS: manual text has priority over live page changes, invalid input disables every action, clearing restores the source, and reopening clears input.');
+
+  await setPreferences({ format: 'html', openInNewTab: false, version: 'current', language: 'en' });
   await paper.goto('https://example.org/');
+  await context.grantPermissions(['clipboard-read'], { origin: 'https://example.org' });
   popup = await openPopup(context, paper, extensionId);
   assert.equal(await popup.locator('#open-paper').isDisabled(), true);
   assert.equal(await popup.locator('#copy-link').isDisabled(), true);
   assert.equal(await popup.locator('#copy-menu-toggle').isDisabled(), true);
+  assert.equal(await popup.locator('#open-menu-toggle').isDisabled(), true);
   assert.equal(await popup.locator('#format-fieldset').isEnabled(), true);
   await assertPopupFits(popup);
   await popup.locator('#language').selectOption('zh_CN');
   await popup.waitForFunction((message) => document.getElementById('status')?.textContent === message, zh.savedPreferences.message);
   await assertPopupFits(popup);
+  await popup.locator('#paper-input').fill('invalid paper reference');
+  await assertPopupFits(popup);
+  assert.equal(await popup.locator('#status').innerText(), zh.invalidPaperInput.message);
+  await popup.locator('#paper-input').fill('hep-th/9901001v2');
+  await popup.locator('#open-menu-toggle').click();
+  await assertMenuFits(popup, 'open');
+  await popup.locator('#copy-menu-toggle').click();
+  await assertCopyMenuFits(popup);
+  await popup.locator('#copy-markdown').press('Escape');
+  await popup.locator('#language').selectOption('en');
+  await popup.waitForFunction(() => document.getElementById('language')?.disabled === false);
+  await popup.locator('#paper-input').fill('invalid paper reference');
+  await assertPopupFits(popup);
+  assert.equal(await popup.locator('#status').innerText(), en.invalidPaperInput.message);
+  for (const [input, id] of [
+    ['  https://www.alphaxiv.org/overview/1706.03762v3?source=share  ', '1706.03762v3'],
+    ['https://arxiv.org/pdf/2301.12345v2.pdf', '2301.12345v2'],
+    ['arXiv: 1706.03762v3', '1706.03762v3'],
+    ['hep-th/9901001v2', 'hep-th/9901001v2'],
+  ]) {
+    await popup.bringToFront();
+    await popup.locator('#paper-input').fill(input);
+    assert.equal(await popup.locator('#paper-id').innerText(), id);
+    assert.equal(await popup.locator('#paper-note').innerText(), `arxiv.org/html/${id}`);
+    assert.equal(await popup.locator('#new-tab').isChecked(), true);
+    assert.equal(await popup.locator('#new-tab').isDisabled(), true);
+    await popup.locator('#copy-menu-toggle').click();
+    await popup.locator('#copy-markdown').click();
+    await popup.waitForFunction(() => document.getElementById('copy-link')?.disabled === false);
+    assert.equal(await readClipboard(paper), `[arXiv:${id}](https://arxiv.org/abs/${id})`);
+    await assertPopupFits(popup);
+  }
+  await popup.bringToFront();
+  await popup.locator('#paper-version').selectOption('latest');
+  await popup.waitForFunction(() => document.getElementById('paper-version')?.disabled === false);
+  assert.equal(await popup.locator('#paper-id').innerText(), 'hep-th/9901001');
+  await popup.locator('#copy-menu-toggle').click();
+  await popup.locator('#copy-markdown').click();
+  await popup.waitForFunction(() => document.getElementById('copy-link')?.disabled === false);
+  assert.equal(await readClipboard(paper), '[arXiv:hep-th/9901001](https://arxiv.org/abs/hep-th/9901001)');
+  await popup.bringToFront();
+  await popup.locator('#open-menu-toggle').click();
+  await assertMenuFits(popup, 'open');
+  const [manualPdf] = await Promise.all([context.waitForEvent('page'), popup.locator('#open-pdf').click()]);
+  await manualPdf.waitForURL('https://arxiv.org/pdf/hep-th/9901001', { waitUntil: 'commit' });
+  await manualPdf.close();
+  if (popup.isClosed() === false) await popup.close();
+  assert.equal(paper.url(), 'https://example.org/');
+  assert.deepEqual(await worker.evaluate(async () => chrome.storage.local.get()), { preferences: { format: 'html', openInNewTab: false, version: 'latest', language: 'en' } });
+  popup = await openPopup(context, paper, extensionId);
+  assert.equal(await popup.locator('#paper-input').inputValue(), '');
+  await popup.locator('#paper-input').fill('arXiv:1706.03762v3');
+  await popup.locator('h1').click();
+  await popup.locator('body').screenshot({ path: join(output, 'popup-input.png') });
+  const [manualDefault] = await Promise.all([context.waitForEvent('page'), popup.locator('#paper-input').press('Enter')]);
+  await manualDefault.waitForURL('https://arxiv.org/html/1706.03762', { waitUntil: 'commit' });
+  await manualDefault.close();
+  if (popup.isClosed() === false) await popup.close();
+  assert.equal(paper.url(), 'https://example.org/');
   assert.equal(await paper.locator('#back-to-arxiv-root').count(), 0);
   assert.deepEqual(browserErrors, []);
-  console.log('PASS: unrelated pages receive no injected UI; popup actions are disabled while preferences remain available.');
+  console.log('PASS: from unrelated pages, links/IDs support preview, Markdown, version choice, temporary/default opening in new tabs; input stays in memory and both languages fit Chrome.');
   console.log(`Browser integration passed. Screenshots: ${output}`);
 } catch (error) {
   const popup = context?.pages().find((page) => page.url().startsWith('chrome-extension://') && page.url().endsWith('/popup.html'));
