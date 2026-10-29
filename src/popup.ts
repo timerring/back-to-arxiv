@@ -36,6 +36,7 @@ const menus = Object.fromEntries((['open', 'copy'] as const).map((name) => {
 })) as Record<MenuName, { container: HTMLDivElement; toggle: HTMLButtonElement; menu: HTMLDivElement; items: HTMLButtonElement[] }>;
 
 let activeTabId: number | undefined;
+let activeTabUrl = '';
 let currentPagePaper: Paper | null = null;
 let paper: Paper | null = null;
 let preferences: Preferences | null = null;
@@ -139,7 +140,11 @@ function renderPaper(): void {
 }
 
 function updateTab(tab: chrome.tabs.Tab): void {
-  const nextPaper = parsePaperUrl(tab.pendingUrl ?? tab.url ?? '');
+  const nextUrl = tab.pendingUrl ?? tab.url ?? '';
+  // Title, favicon and other tab updates leave the selected paper unchanged.
+  if (tab.id === activeTabId && nextUrl === activeTabUrl) return;
+  activeTabUrl = nextUrl;
+  const nextPaper = parsePaperUrl(nextUrl);
   if (hasInput() === false && (activeTabId !== tab.id || currentPagePaper?.id !== nextPaper?.id || currentPagePaper?.source !== nextPaper?.source)) closeMenus();
   activeTabId = tab.id;
   currentPagePaper = nextPaper;

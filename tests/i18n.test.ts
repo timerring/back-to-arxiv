@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { test } from 'node:test';
-import { formatLabel, isLanguagePreference, resolveLocale, translate } from '../src/i18n.ts';
+import { formatLabel, isLanguagePreference, localize, resolveLocale, translate } from '../src/i18n.ts';
 
 interface Message { message: string; description?: string; }
 type Catalog = Record<string, Message>;
@@ -42,6 +42,36 @@ test('localized messages preserve substitutions literally and localize reading-f
     assert.equal(formatLabel('pdf', language), catalog.formatPdf!.message);
     assert.equal(formatLabel('html', language), catalog.formatHtml!.message);
   }
+});
+
+test('repeated localization preserves matching text and attributes without DOM writes', () => {
+  let writes = 0;
+  let title = 'Open arXiv';
+  const attributes = new Map([['data-i18n-aria-label', 'openArxiv'], ['aria-label', 'Open arXiv']]);
+  const textNode = {
+    getAttribute: () => 'openArxiv',
+    get textContent() { return title; },
+    set textContent(value: string) { title = value; writes++; },
+  };
+  const attributeNode = {
+    getAttribute: (key: string) => attributes.get(key) ?? null,
+    setAttribute: (key: string, value: string) => { attributes.set(key, value); writes++; },
+  };
+  const root = { querySelectorAll: (selector: string) => selector === '[data-i18n]' ? [textNode]
+    : selector === '[data-i18n-aria-label]' ? [attributeNode] : [] } as unknown as ParentNode;
+  localize(root, 'en');
+  localize(root, 'en');
+  assert.equal(writes, 0, 'A matching title and accessible label remain untouched');
+  localize(root, 'zh_CN');
+  assert.equal(title, '打开 arXiv');
+  assert.equal(attributes.get('aria-label'), '打开 arXiv');
+  assert.equal(writes, 2);
+  localize(root, 'zh_CN');
+  assert.equal(writes, 2, 'Rendering the same locale keeps the existing DOM');
+  localize(root, 'en');
+  assert.equal(title, 'Open arXiv');
+  assert.equal(attributes.get('aria-label'), 'Open arXiv');
+  assert.equal(writes, 4);
 });
 
 test('bundled locale catalogs have complete matching keys and substitution slots', () => {

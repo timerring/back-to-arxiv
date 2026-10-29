@@ -47,8 +47,11 @@ export function localize(root: ParentNode, language: LanguagePreference): void {
       const key = node.getAttribute(marker)!;
       if (Object.hasOwn(english, key) === false) throw new Error(`Unknown translation key: ${key}`);
       const message = translate(key as MessageKey, language);
-      if (attribute === null) node.textContent = message;
-      else node.setAttribute(attribute, message);
+      if (attribute === null) {
+        if (node.textContent !== message) node.textContent = message;
+      } else if (node.getAttribute(attribute) !== message) {
+        node.setAttribute(attribute, message);
+      }
     }
   }
 }

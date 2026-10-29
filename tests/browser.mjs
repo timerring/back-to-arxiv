@@ -174,6 +174,26 @@ try {
   assert.equal(await popup.locator('#open-paper').innerText(), en.openArxiv.message);
   assert.equal(await paper.getByRole('link', { name: en.openArxiv.message, exact: true }).count(), 1);
   assert.equal(await popup.locator('#html-note').isHidden(), true);
+  await popup.evaluate(() => {
+    const observer = new MutationObserver((records) => { window.__paperMutationCount += records.length; });
+    window.__paperMutationCount = 0;
+    window.__sourceTitleObserved = false;
+    observer.observe(document.querySelector('main'), { subtree: true, childList: true, attributes: true });
+    const listener = (_tabId, change) => {
+      if (change.title === 'Paper title updated during reading') window.__sourceTitleObserved = true;
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+    window.__stopTitleProbe = () => { observer.disconnect(); chrome.tabs.onUpdated.removeListener(listener); };
+  });
+  await paper.evaluate(() => { document.title = 'Paper title updated during reading'; });
+  await popup.waitForFunction(() => window.__sourceTitleObserved === true);
+  assert.equal(await popup.evaluate(() => window.__paperMutationCount), 0, 'A source title update keeps the popup DOM unchanged');
+  await popup.evaluate(() => {
+    window.__stopTitleProbe();
+    delete window.__stopTitleProbe;
+    delete window.__paperMutationCount;
+    delete window.__sourceTitleObserved;
+  });
   await popup.locator('#format-pdf').check();
   await popup.waitForFunction((message) => document.getElementById('status')?.textContent === message, en.savedPreferences.message);
   await popup.locator('#new-tab').check();

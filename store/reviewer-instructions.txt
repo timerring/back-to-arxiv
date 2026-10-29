@@ -1,4 +1,4 @@
-Back to arXiv 0.5.0 — reviewer test instructions
+Back to arXiv 0.5.1 — reviewer test instructions
 
 Access and purpose
 The extension opens and copies arXiv paper links from supported alphaXiv/arXiv pages, hyperlinks, and paper URLs or identifiers entered in the popup. Testing uses public paper pages and requires Chrome 120 or later.
@@ -63,6 +63,9 @@ Pasting that URL in the popup produces the same result. On an unversioned source
 
 14. Finish
 Restore English, Abstract, Current version, and current-tab opening if desired. Refresh existing alphaXiv tabs after reloading or updating the extension. Upgrading retains existing preferences.
+
+Stability update in 0.5.1
+Paper state updates follow the effective page URL. Existing translations remain in place during repeated rendering. This resolves a repeated-rendering path when the popup document is opened as a standalone tab. The reading and copy workflows above retain their behavior.
 
 Implementation notes
 The permissions and site access remain the same as version 0.4. chrome.storage.local saves format, version, tab, and language preferences. content_scripts.matches scopes page controls to the two alphaXiv HTTPS hosts. activeTab supplies the current URL for toolbar/shortcut actions. clipboardWrite writes a requested generated link. contextMenus supplies the explicitly chosen paper link's target URL. Paper URLs and identifiers, including entered input, are processed locally in runtime memory. Closing the popup clears its input; temporary formats apply only to the requested action. Markdown uses a locally generated identifier label and abstract URL. Opening a paper performs ordinary HTTPS navigation to arxiv.org. Executable resources are bundled with the package.

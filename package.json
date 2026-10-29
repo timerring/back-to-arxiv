@@ -1,6 +1,6 @@
 {
   "name": "back-to-arxiv",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "private": true,
   "type": "module",
   "description": "A small Chrome extension that opens alphaXiv papers on arXiv.",
@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:browser": "npm run build && node tests/browser.mjs",
+    "test:memory": "npm run build && node tests/memory.mjs",
     "check": "npm run typecheck && npm test && npm run build"
   },
   "engines": {

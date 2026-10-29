@@ -4,6 +4,8 @@ English | [简体中文](README.zh-CN.md)
 
 A lightweight Chrome extension that opens alphaXiv papers and pasted paper links or identifiers on arXiv. Choose Abstract, PDF, or HTML, and copy clean links or Markdown for your notes. Built with Manifest V3 and TypeScript, with preferences stored locally in your browser.
 
+Version 0.5.1 improves popup stability: paper state refreshes when the effective page URL changes, and localization preserves matching text and attributes. This resolves repeated rendering when the popup is opened as a standalone tab.
+
 ## Install in Chrome
 
 Requires **Node.js 22+** and **Chrome 120+**. Clone or download this repository, then run these commands from the project directory:
@@ -90,7 +92,13 @@ CHROMIUM_LOAD_EXTENSION_VIA_CDP=1 npm run test:browser
 
 This also uses a temporary browser profile. The test invokes the real toolbar action to obtain `activeTab` access, then exercises the same popup document in a test tab.
 
-Version 0.5.0 passed TypeScript checking, 66 unit tests, the production build, and the browser integration suite on Chrome 155. Browser checks cover manual input and validation, temporary opening formats, Markdown and plain-link copying, current/latest versions, keyboard menu controls, native middle-click behavior, preference persistence, English/Chinese layouts within Chrome's 600px popup limit, and navigation through the real MV3 service worker. Unit tests cover context-menu click handling and lifecycle; the browser suite verifies registration through Chrome's context-menu API. Use the manual checks below for native right-click selection and operating-system shortcuts.
+Run `npm run test:memory` with the same browser environment variables for a separate resource-lifecycle stress test. It exercises 500 SPA transitions, preference/menu changes, and 40 popup open/close cycles, then writes garbage-collected heap, document, DOM-node, and event-listener measurements to `test-results/memory.json`. Its measurements cover intercepted fixture pages and extension popup documents in a temporary profile; use them to detect accumulation within those scenarios.
+
+When running browser commands through Codex on macOS, use the approved execution context described in [AGENTS.md](AGENTS.md) from the initial launch. The restricted context on the development machine can cause Chrome to abort during application registration and show the system's **Reopen** prompt before loading the extension. Type checks, unit tests, builds, and packaging run in the workspace sandbox.
+
+Version 0.5.1 passed TypeScript checking, 67 unit tests, the production build, the browser integration suite, and the resource-lifecycle stress test on Chrome 155. Browser checks confirm that source-page title updates preserve the popup DOM, and cover manual input and validation, temporary opening formats, Markdown and plain-link copying, current/latest versions, keyboard menu controls, native middle-click behavior, preference persistence, English/Chinese layouts within Chrome's 600px popup limit, and navigation through the real MV3 service worker. Unit tests cover context-menu click handling and lifecycle; the browser suite verifies registration through Chrome's context-menu API. Use the manual checks below for native right-click selection and operating-system shortcuts.
+
+After 500 SPA transitions, 20 preference/menu rounds, and 40 popup open/close cycles, the post-warmup measurements kept one document per observed target, 114 content-page nodes with 53 listeners, and 280 popup nodes with 43 listeners. Popup JavaScript heap grew by approximately 8 KiB from the warm baseline. These results describe the finite fixture test and its observed counter scopes; they do not measure total Chrome memory or establish behavior for every webpage.
 
 ### Manual checks
 
@@ -120,7 +128,7 @@ Refresh existing alphaXiv tabs after installing or reloading the extension. If t
 
 Run `npm run package:store` to create the extension ZIP and the complete listing kit in `release/`. Packaging requires Node.js 22+ and the `zip` / `unzip` commands included with macOS.
 
-Upload `back-to-arxiv-0.5.0.zip` as the extension. The separate `back-to-arxiv-0.5.0-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
+Upload `back-to-arxiv-0.5.1.zip` as the extension. The separate `back-to-arxiv-0.5.1-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
 
 See [the submission guide](store/START-HERE.txt) for fields and assets. Use the public [privacy policy](https://timerring.com/back-to-arxiv/store/privacy-policy.html) in the Chrome Web Store's Privacy policy URL field. Confirm the publisher contact details before submitting. Support is available through [GitHub Issues](https://github.com/timerring/back-to-arxiv/issues).
 

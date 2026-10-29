@@ -1,4 +1,4 @@
-BACK TO ARXIV 0.5.0 — PRIVACY TAB FILLING GUIDE
+BACK TO ARXIV 0.5.1 — PRIVACY TAB FILLING GUIDE
 Prepared from the implementation and Chrome Web Store documentation on 2026-10-30.
 
 SINGLE PURPOSE — PASTE THIS

@@ -7,7 +7,7 @@ Default listing language
 English
 
 Version
-0.5.0
+0.5.1
 
 Short description (matches the extension manifest; 118 characters)
 Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut.
@@ -45,3 +45,5 @@ Local preferences
 Reading format, version, tab behavior, and language are saved in your browser. Paper links and identifiers are processed locally, and opening a paper navigates directly to arXiv. Clipboard access writes a link only when you request a copy.
 
 HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for paper readers.
+
+Version 0.5.1 improves popup stability and rendering efficiency.
