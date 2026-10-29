@@ -1,0 +1,88 @@
+Back to arXiv 0.3.0 — Chrome Web Store 上架资料
+准备日期：2026-10-29
+
+1. 上传哪个文件
+
+在 Chrome Web Store Developer Dashboard 新建扩展时，选择：
+back-to-arxiv-0.3.0.zip
+
+这是安装包，manifest.json 已位于 ZIP 根目录，包含构建后的脚本、界面、语言文件和图标。
+back-to-arxiv-0.3.0-store-kit.zip 是包含全部材料的资料包。先解压资料包，再选取其中的安装包上传。
+每个 ZIP 附带 .sha256 校验文件。
+
+2. 商店信息填写
+
+名称：Back to arXiv
+默认语言：English
+中文本地化：简体中文
+分类建议：Tools（工具），与论文链接转换功能相符。
+
+英文介绍：listing-en.txt
+中文介绍：listing-zh-CN.txt
+两个文件已区分元数据和可直接粘贴的详细介绍正文。
+简介来自扩展 manifest 的本地化消息，后台上传包后自动读取该元数据。
+
+3. 图片
+
+商店图标：assets/icon-128.png（128×128）
+英文截图：assets/showcase-en.png（1280×800）
+中文截图：assets/showcase-zh-CN.png（1280×800）
+可选小宣传图：assets/promo-small.png（440×280）
+
+在英文和中文语言页分别上传对应截图。小宣传图使用英文品牌文案，是全局素材。
+截图展示实际扩展面板，外围排版用于说明功能。HTML 标注为实验性，保持与实际功能一致。
+
+4. 隐私与审核
+
+privacy-practices.txt：单一用途、各权限用途、远程代码和数据处理说明，可按字段粘贴。
+reviewer-instructions.txt：英文审核测试步骤，包含公开测试论文地址和期望结果。
+privacy-policy.html：双语隐私政策网页，默认英文，可展开简体中文。
+
+本地处理当前网址同样属于需要披露的数据处理。当前实现建议声明 Web history，范围明确为临时处理当前页面 URL；仅保存阅读和语言等偏好。
+
+提交前需要落实：
+• 将 privacy-policy.html 放到稳定、公开可访问的 HTTPS 地址，并将该地址填入隐私政策专用字段。当前代码仓库是私有的，政策可以单独公开托管。
+• 在开发者后台确认发布者显示名及有效的对外联系方式。政策中的联系段落指向商店里的开发者联系方式；也可以替换成确定的公开支持邮箱或页面。
+• 使用已完成开发者注册的账号填写分发范围并提交审核。选择与实际发布计划一致的审核后发布选项。
+
+资料准备完成后，发布动作仍由开发者在后台执行。当前材料不代表已经提交或获批。
+
+5. 本地重建
+
+在仓库根目录运行：
+npm ci
+npm run check
+npm run package:store
+
+需要 Node.js 22+、zip 和 unzip；macOS 已内置后两个命令。
+产物位于 release/。package:store 重新构建安装包，并组装已准备好的文案和图片。
+
+重绘商店图片：
+npm run build
+npm run store:assets
+
+图片渲染需要 Playwright Chromium（npx playwright install chromium），也可设置 CHROMIUM_EXECUTABLE_PATH 使用本机 Chrome。macOS 示例：
+CHROMIUM_EXECUTABLE_PATH='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' npm run store:assets
+
+界面发生变化时，先运行浏览器测试生成新面板截图，再运行：
+npm run store:assets -- --refresh-captures
+npm run package:store
+
+后续上传新版本时，更新 package.json、package-lock.json 和 public/manifest.json，使版本号高于商店已上传版本，并同步文案及截图。
+
+6. 官方参考
+
+ZIP 结构与清单：
+https://developer.chrome.com/docs/webstore/prepare
+商店介绍字段：
+https://developer.chrome.com/docs/webstore/cws-dashboard-listing
+分类说明：
+https://developer.chrome.com/docs/webstore/best-practices#choose_your_extensions_category_well
+图标与截图尺寸：
+https://developer.chrome.com/docs/webstore/images
+隐私字段：
+https://developer.chrome.com/docs/webstore/cws-dashboard-privacy
+本地数据处理披露：
+https://developer.chrome.com/docs/webstore/program-policies/user-data-faq
+发布流程：
+https://developer.chrome.com/docs/webstore/publish

@@ -98,6 +98,16 @@ CHROMIUM_LOAD_EXTENSION_VIA_CDP=1 npm run test:browser
 
 0.3.0 验证记录：类型检查、35 项单元测试、生产构建和 Chrome 155 浏览器集成测试通过。Chrome 手动测试确认默认英文、英文/简体中文/跟随浏览器切换、偏好保存，以及已打开论文页的按钮同步翻译。此前 0.2.0 手动测试还覆盖摘要/PDF 跳转、新标签页、复制链接，以及面板和 `Option+Shift+A` 打开真实 `1706.03762v7` HTML 正文。
 
+## Chrome Web Store 上架包
+
+运行 `npm run package:store`，即可在 `release/` 生成扩展 ZIP 和完整上架资料包。打包需要 Node.js 22+ 以及 macOS 已内置的 `zip` / `unzip` 命令。
+
+扩展上传文件为 `back-to-arxiv-0.3.0.zip`。另一个 `back-to-arxiv-0.3.0-store-kit.zip` 包含安装包、中英文介绍、截图、图标、权限说明、审核测试步骤和隐私政策网页；每个 ZIP 都有 SHA-256 校验文件。
+
+填写说明见[上架指南](store/START-HERE.txt)。提交前，将[隐私政策](store/privacy-policy.html)放到公开可访问的 HTTPS 地址，并确认开发者联系方式。代码仓库可以继续保持私有。
+
+使用 `npm run store:assets` 可基于已保存的截图和排版重新渲染商店图片；界面修改后的截图更新步骤见指南。
+
 ## 文件结构
 
 ```text

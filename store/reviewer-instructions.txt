@@ -1,0 +1,51 @@
+Back to arXiv 0.3.0 — reviewer test instructions
+
+Access and purpose
+The extension opens alphaXiv papers on arXiv and copies their arXiv links. It works without an account, payment, or credentials. Testing requires Chrome 120 or later and internet access to public paper pages.
+
+1. Initial state
+Install the submitted extension and pin Back to arXiv to the toolbar. Open or refresh:
+https://www.alphaxiv.org/abs/1706.03762v7
+Expected: Open arXiv and copy controls at the lower right. Fresh-install defaults: English, Abstract, Open in a new tab off.
+
+2. Default navigation
+Click the page's Open arXiv control.
+Expected: the current tab navigates to:
+https://arxiv.org/abs/1706.03762v7
+The v7 version is retained. Return to the alphaXiv test URL.
+
+3. Copying
+Use the copy control beside the page button, then paste into a text field. Repeat using Copy original link in the toolbar popup.
+Expected for both:
+https://arxiv.org/abs/1706.03762v7
+Copy writes the abstract-page link, including when PDF or HTML is selected.
+
+4. PDF and new-tab preference
+On the alphaXiv test page, open the popup, select PDF, and enable Open in a new tab. Click Open arXiv in the popup.
+Expected: https://arxiv.org/pdf/1706.03762v7 opens in a new tab; the source remains open. Reopen the popup on the source: PDF and the new-tab preference remain selected. The page button uses the same preferences.
+
+5. Experimental HTML
+On the source tab, select HTML (experimental) in the popup, then click Open arXiv.
+Expected destination: https://arxiv.org/html/1706.03762v7
+The popup explains that HTML availability depends on the paper version. arXiv supplies the HTML content; some papers or versions have no HTML edition. Abstract and PDF can be selected instead.
+
+6. Shared shortcut
+On the source tab, press Alt+Shift+A on Windows/Linux or Option+Shift+A on macOS.
+Expected: the paper opens using saved preferences. The popup shows Chrome's assigned shortcut. For a shortcut conflict, use Edit or chrome://extensions/shortcuts to assign an available combination, then test it.
+
+7. Language and persistence
+Select 简体中文 under Language. Expected: the popup and existing page controls switch to Chinese. Reopen the popup; language and reading preferences persist. Select English to return to English. Follow browser uses Simplified Chinese for supported Simplified Chinese locales and English otherwise. Initial UI language is English even on a Chinese browser.
+
+8. Explicit and omitted versions
+Open https://www.alphaxiv.org/abs/1706.03762v7?utm_source=test#discussion and copy the link. Expected: https://arxiv.org/abs/1706.03762v7
+Open https://www.alphaxiv.org/abs/1706.03762 and copy again. Expected: https://arxiv.org/abs/1706.03762
+The copy results contain the paper identifier and optional version, with source query parameters and fragment removed.
+
+9. Page scope
+On the alphaXiv home page, paper controls are hidden. On https://example.org the popup waits for a paper, open/copy actions are disabled, and preferences remain available. On arXiv abstract/PDF/HTML pages, the popup and shortcut support opening the chosen format; the popup also copies the abstract link.
+
+10. Finish
+Restore English, Abstract, and current-tab preferences if desired. Refresh already-open alphaXiv tabs after reloading or updating the extension.
+
+Implementation notes for review
+chrome.storage.local saves preferences. The content script adds page controls on the two alphaXiv HTTPS hosts in the manifest. activeTab supplies the current URL for toolbar/shortcut actions; clipboardWrite supports clicking Copy. Executable resources are bundled in the package; paper navigation opens the selected arXiv URL.

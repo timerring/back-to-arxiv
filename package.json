@@ -6,6 +6,9 @@
   "description": "A small Chrome extension that opens alphaXiv papers on arXiv.",
   "scripts": {
     "build": "node scripts/build.mjs",
+    "package": "npm run build && node scripts/package.mjs",
+    "package:store": "npm run package && node scripts/store-kit.mjs",
+    "store:assets": "node scripts/store-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:browser": "npm run build && node tests/browser.mjs",

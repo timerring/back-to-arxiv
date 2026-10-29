@@ -36,11 +36,15 @@ function pixel(x, y) {
 function png(size) {
   const scanlines = Buffer.alloc((size * 4 + 1) * size);
   const samples = 4;
+  // Store icons use a 96px mark with 16px of transparent padding on each side.
+  const artworkScale = size === 128 ? 0.8 : 1;
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const totals = [0, 0, 0, 0];
       for (let sy = 0; sy < samples; sy++) for (let sx = 0; sx < samples; sx++) {
-        const rgba = pixel((x + (sx + .5) / samples) * 128 / size, (y + (sy + .5) / samples) * 128 / size);
+        const px = (x + (sx + .5) / samples) * 128 / size;
+        const py = (y + (sy + .5) / samples) * 128 / size;
+        const rgba = pixel((px - 64) / artworkScale + 64, (py - 64) / artworkScale + 64);
         for (let channel = 0; channel < 4; channel++) totals[channel] += rgba[channel];
       }
       const offset = y * (size * 4 + 1) + 1 + x * 4;

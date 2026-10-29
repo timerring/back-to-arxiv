@@ -96,6 +96,16 @@ Version 0.3.0 passed TypeScript checking, 35 unit tests, the production build, a
 
 Refresh existing alphaXiv tabs after installing or reloading the extension. If the shortcut is already assigned elsewhere, choose another one in Chrome's shortcut settings. If another extension redirects arXiv back to alphaXiv, adjust that extension's redirect settings.
 
+## Chrome Web Store package
+
+Run `npm run package:store` to create the extension ZIP and the complete listing kit in `release/`. Packaging requires Node.js 22+ and the `zip` / `unzip` commands included with macOS.
+
+Upload `back-to-arxiv-0.3.0.zip` as the extension. The separate `back-to-arxiv-0.3.0-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
+
+See [the submission guide](store/START-HERE.txt) for fields and assets. Host [the privacy policy](store/privacy-policy.html) at a public HTTPS URL and confirm the publisher contact details before submitting. The source repository can remain private.
+
+Use `npm run store:assets` to render the store graphics from their saved captures and layouts. After UI changes, refresh the captures as described in the guide.
+
 ## Project structure
 
 ```text
@@ -111,6 +121,8 @@ src/navigation.ts      Navigation shared by the popup and shortcut
 src/background.ts      Message and keyboard-command handling
 scripts/              Build and icon generation
 tests/                Unit and browser integration tests
+store/                Store listing copy, images, and submission guidance
+release/              Generated upload ZIP and complete submission kit
 dist/                 Generated Chrome extension
 ```
 

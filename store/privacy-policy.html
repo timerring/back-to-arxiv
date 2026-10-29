@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How Back to arXiv handles paper URLs, local preferences, clipboard actions, and navigation.">
+  <title>Back to arXiv — Privacy Policy</title>
+  <style>
+    :root { color-scheme: light; font-family: system-ui, sans-serif; color: #312a27; background: #faf8f4; }
+    body { max-width: 760px; padding: 48px 24px 72px; margin: auto; line-height: 1.7; }
+    a { color: #933c35; } h1 { font: 2.5rem/1.15 Georgia, serif; margin: 12px 0; }
+    h2 { font-size: 1.25rem; margin-top: 32px; } h3 { font-size: 1.05rem; margin-top: 26px; }
+    .brand { color: #933c35; font-weight: 600; } .date { color: #797069; font-size: .9rem; }
+    details { margin-top: 44px; padding-top: 24px; border-top: 1px solid #ddd4c9; } summary { cursor: pointer; color: #933c35; }
+    code { background: #eee8e0; padding: 2px 4px; border-radius: 3px; overflow-wrap: anywhere; }
+  </style>
+</head>
+<body>
+  <div class="brand">Back to arXiv</div>
+  <h1>Privacy Policy</h1>
+  <p class="date">Effective date: October 29, 2026 · Extension version 0.3.0</p>
+  <p>Back to arXiv helps you open a paper on arXiv from alphaXiv and copy its arXiv link. This policy explains the information used by those features.</p>
+
+  <h2>Information used by the extension</h2>
+  <ul>
+    <li><strong>Current page URLs and paper identifiers.</strong> On alphaXiv, the extension reads the page URL to identify a paper and display its controls. When you invoke the toolbar popup or shortcut, it reads the active tab URL to identify a supported paper. The URL and identifier are processed in runtime memory for these features.</li>
+    <li><strong>Preferences.</strong> Your reading format, choice of current or new tab, and interface language are saved in <code>chrome.storage.local</code> in your browser profile. When Follow browser is selected, the extension reads Chrome's interface language to choose a bundled translation.</li>
+    <li><strong>Generated links.</strong> Clicking Copy writes the paper's arXiv abstract-page link to your clipboard. The extension's clipboard operation is a write of the requested link.</li>
+  </ul>
+  <p>The extension does not read paper text, account details, cookies, form contents, or existing clipboard contents. It does not create a stored browsing-history log.</p>
+
+  <h2>Purpose and processing</h2>
+  <p>URL processing identifies the current paper, preserves its version, and constructs the arXiv link. Preferences determine the format, tab behavior, and interface language. This processing occurs in your browser. The extension contains no analytics, advertising, or developer-operated data collection service.</p>
+
+  <h2>Navigation to other websites</h2>
+  <p>When you choose Open arXiv or use the shortcut, your browser sends an HTTPS request to <code>arxiv.org</code> for the selected paper. That request includes the paper path and ordinary browser connection information, such as the IP address and request headers. The destination website handles that visit under its own privacy practices. Browsing alphaXiv is likewise subject to that website's practices.</p>
+
+  <h2>Retention and your controls</h2>
+  <p>Current URLs and paper identifiers are used transiently while the relevant extension context is running. Saved preferences remain in the browser's extension storage until you change them, clear that storage, or remove the extension. You can change all three preferences in the popup. Removing the extension clears its local extension storage.</p>
+  <p>A copied link follows your operating system's clipboard behavior. You can replace the clipboard contents by copying other text. The extension does not manage your browser history or operating system clipboard history.</p>
+
+  <h2>Limited Use</h2>
+  <p>Back to arXiv uses information received through Chrome APIs only to provide its stated paper-navigation and link-copying features. This use complies with the <a href="https://developer.chrome.com/docs/webstore/program-policies/user-data-faq">Chrome Web Store User Data Policy</a>, including the Limited Use requirements. User data is not sold, used for advertising, or used to determine creditworthiness or lending eligibility.</p>
+
+  <h2>Updates and contact</h2>
+  <p>This page will be updated when the extension's data practices change. For privacy questions, contact the developer using the contact information on Back to arXiv's Chrome Web Store listing.</p>
+
+  <details lang="zh-CN">
+    <summary>简体中文说明</summary>
+    <h2>隐私政策</h2>
+    <p class="date">生效日期：2026 年 10 月 29 日 · 扩展版本 0.3.0</p>
+    <p>Back to arXiv 帮助你从 alphaXiv 打开对应的 arXiv 论文，并复制原文链接。</p>
+    <h3>扩展处理的信息</h3>
+    <p>扩展在 alphaXiv 页面读取当前网址，以识别论文并显示操作按钮。调用工具栏面板或快捷键时，扩展读取当前标签页网址，提取论文编号和版本，并在运行时内存中生成 arXiv 地址。阅读格式、标签页打开方式和界面语言通过 <code>chrome.storage.local</code> 保存在本地浏览器中。选择“跟随浏览器”时，扩展读取 Chrome 的界面语言来选择内置翻译。点击复制时，扩展将生成的 arXiv 摘要页链接写入剪贴板。</p>
+    <p>扩展不读取论文正文、账户信息、Cookie、表单内容或剪贴板已有内容，也不保存浏览历史记录。扩展没有分析统计、广告或开发者运营的数据收集服务。</p>
+    <h3>访问第三方网站</h3>
+    <p>点击打开或使用快捷键时，浏览器通过 HTTPS 请求 <code>arxiv.org</code> 的目标论文页面。该请求包含论文路径，以及 IP 地址、请求头等常规连接信息。arXiv 和 alphaXiv 分别按照各自的隐私规则处理网站访问。</p>
+    <h3>保存期限与控制</h3>
+    <p>当前网址和论文编号在相关扩展上下文运行期间临时使用。偏好保存在扩展的本地存储中，可在面板修改；清除扩展存储或移除扩展会删除这些偏好。复制的链接遵循操作系统的剪贴板机制，可通过复制其他内容替换。浏览器历史记录和系统剪贴板历史由相应软件管理。</p>
+    <h3>有限使用与联系</h3>
+    <p>通过 Chrome API 获得的信息仅用于已声明的论文跳转和链接复制功能，遵守 Chrome Web Store 用户数据政策及其 Limited Use 要求。用户数据不用于销售、广告、信用评估或贷款资格判断。数据处理方式变化时，本政策会相应更新。如有隐私问题，请使用 Back to arXiv 商店页面提供的开发者联系方式。</p>
+  </details>
+</body>
+</html>

@@ -1,0 +1,47 @@
+BACK TO ARXIV 0.3.0 — PRIVACY TAB FILLING GUIDE
+Prepared from the current source and Chrome Web Store documentation on 2026-10-29.
+
+SINGLE PURPOSE — PASTE THIS
+Help users open the arXiv version of the paper they are viewing on alphaXiv, using their preferred abstract, PDF, or experimental HTML format. The same paper links can be opened through a page control, toolbar popup, or keyboard shortcut, and copied to the clipboard.
+
+STORAGE PERMISSION — PASTE THIS
+Saves the selected reading format, current-tab or new-tab preference, and interface language in chrome.storage.local. These settings are stored in the user's browser and used consistently by the page control, toolbar popup, and keyboard shortcut.
+
+ACTIVETAB PERMISSION — PASTE THIS
+Reads the current tab URL when the user invokes the toolbar action or keyboard shortcut, identifies a supported paper, and opens or copies its corresponding arXiv link. It also lets the popup display the current paper identifier.
+
+CLIPBOARDWRITE PERMISSION — PASTE THIS
+Writes the canonical arXiv abstract-page link to the clipboard when the user clicks a Copy button. The copied link preserves an explicit paper version. Clipboard access is limited to writing a generated link on request.
+
+ALPHAXIV SITE ACCESS — PASTE IF A HOST JUSTIFICATION FIELD IS SHOWN
+Runs on https://alphaxiv.org/* and https://www.alphaxiv.org/* to identify paper URLs, display the Open arXiv and Copy controls, and keep those controls accurate when the user navigates between papers within the site.
+
+Implementation note: these are content_scripts.matches. The manifest requests storage, activeTab, and clipboardWrite; it has no additional host_permissions entry.
+
+REMOTE CODE
+Select: No, I am not using remote code.
+Explanation: All JavaScript, CSS, interface text, and icons are bundled with the extension. Opening an arXiv page is ordinary browser navigation. Extension functionality executes from the installed package.
+
+DATA USAGE CATEGORIES
+Recommended selection for the current code: Web history (current page URLs only).
+Keep the other categories unselected based on the current implementation.
+
+This recommendation includes transient local URL processing. It does not imply that the extension records a browsing history. Chrome's User Data FAQ requires disclosure even for data processed or stored only on the device. Match the wording of the live dashboard to this behavior when completing the form.
+
+DATA HANDLING / REVIEWER EXPLANATION — PASTE THIS WHERE APPLICABLE
+The extension processes the URL of the current alphaXiv page to display paper controls. When the user invokes the popup or shortcut, it reads the active tab URL to identify the paper and construct its arXiv link. URLs and paper identifiers are processed transiently in runtime memory. Only reading-format, tab-opening, and language preferences are stored locally. Follow browser reads Chrome's interface language to select a bundled translation. Copy actions write a generated paper link to the clipboard. Opening a paper navigates the browser to arxiv.org over HTTPS, where the destination site's privacy practices apply. The extension has no analytics service or developer-operated collection endpoint.
+
+LIMITED USE CERTIFICATIONS
+The three certifications in the current dashboard are consistent with this implementation: data use serves the stated paper-navigation/copying purpose; data is not sold or transferred for unrelated uses; data is not used for creditworthiness or lending decisions. The publisher should review and affirm the certifications when submitting.
+
+PRIVACY POLICY URL
+Publish store/privacy-policy.html at a stable, publicly accessible HTTPS address, then enter that address in the dedicated privacy-policy field.
+The current source repository is private. Its file URLs are unsuitable as public policy or support links. The policy can be hosted separately while the source remains private.
+
+CONTACT / PUBLISHER DETAILS
+Choose the publisher's display name and public contact information in the developer dashboard. The prepared policy directs privacy inquiries to the developer contact listed in the store. A public support page or support email can replace that generic contact sentence before hosting.
+
+OFFICIAL REFERENCES
+https://developer.chrome.com/docs/webstore/cws-dashboard-privacy
+https://developer.chrome.com/docs/webstore/program-policies/user-data-faq
+https://developer.chrome.com/docs/webstore/program-policies/policies

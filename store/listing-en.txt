@@ -1,0 +1,39 @@
+STORE METADATA
+
+Title
+Back to arXiv
+
+Default listing language
+English
+
+Version
+0.3.0
+
+Short description (matches the extension manifest; 118 characters)
+Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut.
+
+DETAILED DESCRIPTION — COPY THE TEXT BELOW
+
+Go from an alphaXiv paper to its arXiv page in one click. Back to arXiv adds a small page button and a toolbar popup, so you can open the paper in your preferred reading format and keep the version you were viewing.
+
+Choose how you read
+• Open the arXiv abstract page, PDF, or HTML (experimental).
+• Use the current tab or open a new one.
+• Save your preference once; the page button, popup, and keyboard shortcut use the same settings.
+
+Keep the paper version
+A link containing a version such as v3 keeps that version when you open or copy it. A link without a version stays unversioned. Modern and legacy arXiv identifiers are supported.
+
+Copy a clean original link
+Copy the arXiv abstract-page link from the popup or the page button. The copied link keeps the paper identifier and version, while leaving out source tracking parameters and discussion anchors. Copy always uses the abstract-page URL, whichever reading format you select.
+
+Use a shortcut
+Press Alt+Shift+A on Windows/Linux or Option+Shift+A on macOS to open the current paper. You can customize the assigned shortcut through the popup or Chrome's extension shortcut settings. The popup and shortcut also work on supported arXiv paper pages.
+
+English and Simplified Chinese
+The interface starts in English. Choose English, 简体中文, or Follow browser in the popup. Language changes also update the controls on open alphaXiv paper pages.
+
+Simple, local preferences
+Reading and language preferences are saved in your browser. The extension converts paper URLs locally; opening a paper takes you directly to arXiv. Start by pinning Back to arXiv and opening an alphaXiv paper.
+
+HTML availability depends on the paper and version supported by arXiv. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for research reading.
