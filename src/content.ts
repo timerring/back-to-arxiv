@@ -1,4 +1,5 @@
-import { buildArxivUrl, parsePaperUrl, READING_FORMAT_LABELS, type Paper } from './paper';
+import { buildArxivUrl, parsePaperUrl, type Paper } from './paper';
+import { formatLabel, localize, resolveLocale, translate, type MessageKey } from './i18n';
 import { DEFAULT_PREFERENCES, getPreferences, normalizePreferences, type Preferences } from './settings';
 
 const host = document.createElement('div');
@@ -23,12 +24,12 @@ shadow.innerHTML = `
     @media (max-width: 600px) { :host { right: 16px; bottom: 16px; } }
     @media (prefers-reduced-motion: reduce) { a { transition: none; } }
   </style>
-  <div class="dock" role="group" aria-label="Back to arXiv">
-    <a aria-label="打开 arXiv">
+  <div class="dock" role="group" aria-label="Back to arXiv" data-i18n-aria-label="extName">
+    <a aria-label="Open arXiv" data-i18n-aria-label="openArxiv">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      <span class="words"><span class="label">打开 arXiv</span><span class="detail"></span></span>
+      <span class="words"><span class="label" data-i18n="openArxiv">Open arXiv</span><span class="detail"></span></span>
     </a>
-    <button type="button" aria-label="复制原文链接" title="复制 arXiv 摘要链接">
+    <button type="button" aria-label="Copy original link" title="Copy arXiv abstract link" data-i18n-aria-label="copyLink" data-i18n-title="dockCopyTitle">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.6"/></svg>
     </button>
   </div>
@@ -43,16 +44,19 @@ let preferences: Preferences = { ...DEFAULT_PREFERENCES };
 let currentPaper: Paper | null = null;
 let lastUrl = '';
 let statusTimer: ReturnType<typeof setTimeout> | undefined;
+let statusMessage: MessageKey | null = null;
 
-function announce(message: string): void {
+function announce(message: MessageKey): void {
   clearTimeout(statusTimer);
-  status.textContent = message;
-  statusTimer = setTimeout(() => { status.textContent = ''; }, 2600);
+  statusMessage = message;
+  status.textContent = translate(message, preferences.language);
+  statusTimer = setTimeout(() => { statusMessage = null; status.textContent = ''; }, 2600);
 }
 
 function render(): void {
   const nextUrl = location.href;
   if (nextUrl !== lastUrl) {
+    statusMessage = null;
     status.textContent = '';
     clearTimeout(statusTimer);
   }
@@ -63,12 +67,15 @@ function render(): void {
     host.remove();
     return;
   }
+  localize(shadow, preferences.language);
+  host.lang = resolveLocale(preferences.language).replace('_', '-');
+  if (statusMessage) status.textContent = translate(statusMessage, preferences.language);
   openLink.href = buildArxivUrl(currentPaper, preferences.format);
   openLink.target = preferences.openInNewTab ? '_blank' : '_self';
   openLink.rel = 'noopener noreferrer';
-  const formatLabel = READING_FORMAT_LABELS[preferences.format];
-  openLink.title = `在${preferences.openInNewTab ? '新' : '当前'}标签页打开 arXiv ${formatLabel}`;
-  detail.textContent = `${currentPaper.id} · ${formatLabel}`;
+  const label = formatLabel(preferences.format, preferences.language);
+  openLink.title = translate(preferences.openInNewTab ? 'dockOpenNew' : 'dockOpenCurrent', preferences.language, [label]);
+  detail.textContent = `${currentPaper.id} · ${label}`;
   if (!host.isConnected) document.documentElement.append(host);
 }
 
@@ -85,8 +92,8 @@ copyButton.addEventListener('click', () => {
   const paper = parsePaperUrl(location.href);
   if (paper === null) return;
   void navigator.clipboard.writeText(buildArxivUrl(paper, 'abs'))
-    .then(() => announce('已复制 arXiv 原文链接'))
-    .catch(() => announce('复制失败，请在浏览器插件面板中重试。'));
+    .then(() => announce('dockCopySucceeded'))
+    .catch(() => announce('dockCopyFailed'));
 });
 
 async function start(): Promise<void> {
@@ -117,5 +124,5 @@ async function start(): Promise<void> {
 }
 
 void start().catch((error: unknown) => {
-  console.info('Back to arXiv: 请刷新页面以重新加载插件。', error);
+  console.info(`Back to arXiv: ${translate('reloadExtension', preferences.language)}`, error);
 });

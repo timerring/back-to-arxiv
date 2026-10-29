@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Back to arXiv</title>
+    <title data-i18n="extName">Back to arXiv</title>
     <link rel="stylesheet" href="popup.css" />
     <script src="popup.js" defer></script>
   </head>
@@ -17,53 +17,61 @@
           </svg>
         </span>
         <div>
-          <h1>Back to arXiv</h1>
-          <p class="tagline">回到论文原文</p>
+          <h1 data-i18n="extName">Back to arXiv</h1>
+          <p class="tagline" data-i18n="tagline">Back to the original paper</p>
         </div>
         <span class="edition">01</span>
       </header>
 
       <section class="paper-card" aria-labelledby="paper-label">
         <div class="paper-meta">
-          <span id="paper-label">当前论文</span>
-          <span id="paper-source" class="source">正在读取</span>
+          <span id="paper-label" data-i18n="currentPaper">Current paper</span>
+          <span id="paper-source" class="source" data-i18n="identifyingSource">Reading page</span>
         </div>
-        <p id="paper-id" class="paper-id">准备打开原文</p>
-        <p id="paper-note" class="paper-note">正在识别当前页面…</p>
+        <p id="paper-id" class="paper-id" data-i18n="preparingPaper">Preparing your paper</p>
+        <p id="paper-note" class="paper-note" data-i18n="identifyingPage">Identifying the current page…</p>
       </section>
 
       <div class="actions">
         <button id="open-paper" class="button primary" type="button" disabled>
-          <span id="open-label">打开 arXiv</span>
+          <span id="open-label" data-i18n="openArxiv">Open arXiv</span>
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </button>
         <button id="copy-link" class="button secondary" type="button" disabled>
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.4" /><path d="M12 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.4" /></svg>
-          <span>复制原文链接</span>
+          <span data-i18n="copyLink">Copy original link</span>
         </button>
       </div>
 
-      <section class="preferences" aria-label="阅读偏好">
+      <section class="preferences" aria-label="Reading preferences" data-i18n-aria-label="readingPreferences">
         <fieldset id="format-fieldset" disabled>
-          <legend>默认打开</legend>
+          <legend data-i18n="defaultOpen">Default format</legend>
           <div class="segmented">
-            <label><input id="format-abs" type="radio" name="format" value="abs" checked /><span>摘要页</span></label>
-            <label><input id="format-pdf" type="radio" name="format" value="pdf" /><span>PDF 原文</span></label>
-            <label><input id="format-html" type="radio" name="format" value="html" aria-label="HTML (experimental)" aria-describedby="html-note" /><span>HTML<small>(experimental)</small></span></label>
+            <label><input id="format-abs" type="radio" name="format" value="abs" checked /><span data-i18n="formatAbs">Abstract</span></label>
+            <label><input id="format-pdf" type="radio" name="format" value="pdf" /><span data-i18n="formatPdf">PDF</span></label>
+            <label><input id="format-html" type="radio" name="format" value="html" aria-label="HTML (experimental)" data-i18n-aria-label="formatHtml" aria-describedby="html-note" /><span>HTML<small data-i18n="formatExperimental">(experimental)</small></span></label>
           </div>
         </fieldset>
-        <p id="html-note" class="format-note" hidden>HTML 为 arXiv 实验性格式，支持范围取决于论文版本。需要其他格式时，可切换摘要页或 PDF。</p>
+        <p id="html-note" class="format-note" data-i18n="htmlNote" hidden>HTML is an experimental arXiv format. Availability depends on the paper version. Choose Abstract or PDF for another format.</p>
         <label class="toggle-row" for="new-tab">
-          <span>在新标签页打开</span>
+          <span data-i18n="openInNewTab">Open in a new tab</span>
           <span class="switch"><input id="new-tab" type="checkbox" disabled /><span class="switch-track" aria-hidden="true"></span></span>
         </label>
+        <div class="language-row">
+          <label for="language" data-i18n="language">Language</label>
+          <select id="language" disabled>
+            <option value="en" data-i18n="languageEnglish" selected>English</option>
+            <option value="zh_CN" data-i18n="languageChinese">简体中文</option>
+            <option value="auto" data-i18n="languageAuto">Follow browser</option>
+          </select>
+        </div>
       </section>
 
-      <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true">设置会自动保存在此浏览器</p>
+      <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true" data-i18n="storageNote">Settings are saved in this browser</p>
 
       <footer>
-        <span class="shortcut-label">快捷键 <kbd id="shortcut">读取中</kbd></span>
-        <button id="edit-shortcut" class="text-button" type="button" aria-label="在 Chrome 中设置快捷键">设置 <span aria-hidden="true">↗</span></button>
+        <span class="shortcut-label"><span data-i18n="shortcut">Shortcut</span> <kbd id="shortcut" data-i18n="readingShortcut">Loading</kbd></span>
+        <button id="edit-shortcut" class="text-button" type="button" aria-label="Set shortcut in Chrome" data-i18n-aria-label="editShortcutLabel"><span data-i18n="editShortcut">Set</span> <span aria-hidden="true">↗</span></button>
       </footer>
     </main>
   </body>

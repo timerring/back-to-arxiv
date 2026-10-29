@@ -1,8 +1,11 @@
 import { buildArxivUrl, isReadingFormat, parsePaperUrl } from './paper';
-import { getPreferences, savePreferences } from './settings';
+import { isLanguagePreference, localize, resolveLocale, translate, type LanguagePreference, type MessageKey } from './i18n';
+import { getPreferences, normalizePreferences, savePreferences } from './settings';
 
 type Preferences = Awaited<ReturnType<typeof getPreferences>>;
 type Paper = NonNullable<ReturnType<typeof parsePaperUrl>>;
+type StatusKind = 'neutral' | 'success' | 'error';
+type StatusMessage = { key: MessageKey; kind: StatusKind } | { text: string; kind: StatusKind };
 
 function element<T extends HTMLElement>(id: string): T {
   const node = document.getElementById(id);
@@ -16,6 +19,7 @@ const formatFieldset = element<HTMLFieldSetElement>('format-fieldset');
 const formatRadios = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="format"]'));
 const htmlNote = element<HTMLParagraphElement>('html-note');
 const newTabCheckbox = element<HTMLInputElement>('new-tab');
+const languageSelect = element<HTMLSelectElement>('language');
 const status = element<HTMLParagraphElement>('status');
 
 let activeTabId: number | undefined;
@@ -24,25 +28,46 @@ let preferences: Preferences | null = null;
 let saving = false;
 let opening = false;
 let copying = false;
+let shortcut: string | undefined;
+let statusMessage: StatusMessage = { key: 'storageNote', kind: 'neutral' };
 let saveQueue: Promise<void> = Promise.resolve();
 
-function showStatus(message: string, kind: 'neutral' | 'success' | 'error' = 'neutral'): void {
-  status.textContent = message;
-  status.className = `status${kind === 'neutral' ? '' : ` is-${kind}`}`;
+function language(): LanguagePreference {
+  return preferences?.language ?? 'en';
+}
+
+function t(key: MessageKey): string {
+  return translate(key, language());
+}
+
+function renderStatus(): void {
+  status.textContent = 'key' in statusMessage ? t(statusMessage.key) : statusMessage.text;
+  status.className = `status${statusMessage.kind === 'neutral' ? '' : ` is-${statusMessage.kind}`}`;
+}
+
+function showStatus(key: MessageKey, kind: StatusKind = 'neutral'): void {
+  statusMessage = { key, kind };
+  renderStatus();
 }
 
 function renderControls(): void {
+  localize(document, language());
+  document.documentElement.lang = resolveLocale(language()).replace('_', '-');
   openButton.disabled = paper === null || preferences === null || saving || opening;
   copyButton.disabled = paper === null || copying;
   formatFieldset.disabled = preferences === null || saving || opening;
   newTabCheckbox.disabled = preferences === null || saving || opening;
-  element('open-label').textContent = opening ? '正在打开…' : '打开 arXiv';
+  languageSelect.disabled = preferences === null || saving || opening;
+  element('open-label').textContent = t(opening ? 'opening' : 'openArxiv');
+  element('shortcut').textContent = shortcut || t('shortcutUnset');
   if (preferences !== null) {
     for (const radio of formatRadios) radio.checked = radio.value === preferences.format;
     newTabCheckbox.checked = preferences.openInNewTab;
+    languageSelect.value = preferences.language;
   }
   htmlNote.hidden = preferences?.format !== 'html';
   renderPaper();
+  renderStatus();
 }
 
 function renderPaper(): void {
@@ -53,13 +78,13 @@ function renderPaper(): void {
   source.dataset.ready = String(paper !== null);
   if (paper !== null) {
     paperId.textContent = paper.id;
-    source.textContent = paper.source === 'alphaxiv' ? '来自 alphaXiv' : '来自 arXiv';
+    source.textContent = t(paper.source === 'alphaxiv' ? 'sourceAlphaXiv' : 'sourceArxiv');
     note.textContent = buildArxivUrl(paper, preferences?.format ?? 'abs').replace('https://', '');
-    note.title = '保留当前版本；复制链接始终使用 arXiv 摘要页地址';
+    note.title = t('versionNote');
   } else {
-    paperId.textContent = '从一篇论文开始';
-    source.textContent = '等待论文';
-    note.textContent = '打开 alphaXiv 或 arXiv 的论文页面，即可跳转和复制原文链接。';
+    paperId.textContent = t('emptyPaper');
+    source.textContent = t('waitingPaper');
+    note.textContent = t('emptyNote');
     note.removeAttribute('title');
   }
 }
@@ -75,7 +100,7 @@ async function persistPreferences(patch: Partial<Preferences>): Promise<void> {
   const previous = preferences;
   preferences = { ...preferences, ...patch };
   saving = true;
-  showStatus('正在保存偏好…');
+  showStatus('savingPreferences');
   renderControls();
 
   const operation = saveQueue.then(() => savePreferences(patch));
@@ -83,10 +108,10 @@ async function persistPreferences(patch: Partial<Preferences>): Promise<void> {
   saveQueue = operation.catch(() => undefined);
   try {
     await operation;
-    showStatus('偏好已保存，页面按钮和快捷键会使用此设置', 'success');
+    showStatus('savedPreferences', 'success');
   } catch {
     preferences = previous;
-    showStatus('保存失败，请重新选择阅读偏好。', 'error');
+    showStatus('saveFailed', 'error');
   } finally {
     saving = false;
     renderControls();
@@ -103,6 +128,11 @@ for (const radio of formatRadios) {
 newTabCheckbox.addEventListener('change', () => {
   void persistPreferences({ openInNewTab: newTabCheckbox.checked });
 });
+languageSelect.addEventListener('change', () => {
+  if (isLanguagePreference(languageSelect.value)) {
+    void persistPreferences({ language: languageSelect.value });
+  }
+});
 
 openButton.addEventListener('click', async () => {
   if (paper === null || activeTabId === undefined || opening || saving) return;
@@ -116,11 +146,13 @@ openButton.addEventListener('click', async () => {
     });
     if (response?.ok === true) {
       window.close();
+    } else if (response?.error) {
+      statusMessage = { text: response.error, kind: 'error' };
     } else {
-      showStatus(response?.error ?? '打开失败，请刷新论文页面后重试。', 'error');
+      showStatus('openFailed', 'error');
     }
   } catch {
-    showStatus('打开失败，请刷新论文页面后重试。', 'error');
+    showStatus('openFailed', 'error');
   } finally {
     opening = false;
     renderControls();
@@ -134,9 +166,9 @@ copyButton.addEventListener('click', async () => {
   renderControls();
   try {
     await navigator.clipboard.writeText(link);
-    showStatus('已复制 arXiv 摘要页链接，论文版本已保留', 'success');
+    showStatus('copySucceeded', 'success');
   } catch {
-    showStatus('复制失败，请保持弹窗打开后重试。', 'error');
+    showStatus('copyFailed', 'error');
   } finally {
     copying = false;
     renderControls();
@@ -148,12 +180,19 @@ element<HTMLButtonElement>('edit-shortcut').addEventListener('click', async () =
     await chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
     window.close();
   } catch {
-    showStatus('请在地址栏打开 chrome://extensions/shortcuts 设置快捷键。', 'error');
+    showStatus('shortcutInstructions', 'error');
   }
 });
 
 chrome.tabs.onUpdated.addListener((tabId, _changeInfo, tab) => {
   if (tabId === activeTabId) updateTab(tab);
+});
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.preferences && saving === false) {
+    preferences = normalizePreferences(changes.preferences.newValue);
+    renderControls();
+  }
 });
 
 async function initialize(): Promise<void> {
@@ -166,19 +205,18 @@ async function initialize(): Promise<void> {
   if (preferenceResult.status === 'fulfilled') {
     preferences = preferenceResult.value;
   } else {
-    showStatus('读取偏好失败，请重新打开弹窗。', 'error');
+    showStatus('loadPreferencesFailed', 'error');
   }
 
   if (tabResult.status === 'fulfilled' && tabResult.value[0] !== undefined) {
     updateTab(tabResult.value[0]);
   } else {
-    showStatus('读取页面失败，请重新打开弹窗。', 'error');
+    showStatus('loadPageFailed', 'error');
   }
 
-  const command = shortcutResult.status === 'fulfilled'
-    ? shortcutResult.value.find((entry) => entry.name === 'open-arxiv')
+  shortcut = shortcutResult.status === 'fulfilled'
+    ? shortcutResult.value.find((entry) => entry.name === 'open-arxiv')?.shortcut
     : undefined;
-  element('shortcut').textContent = command?.shortcut || '点击设置';
   renderControls();
 }
 

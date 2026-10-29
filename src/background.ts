@@ -1,4 +1,6 @@
-import { openPaperTab } from './navigation';
+import { NavigationError, openPaperTab } from './navigation';
+import { translate } from './i18n';
+import { DEFAULT_PREFERENCES, getPreferences } from './settings';
 
 chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) => {
   // Navigation requests originate in this extension's popup.
@@ -15,7 +17,8 @@ chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) =>
       await openPaperTab(tab);
       sendResponse({ ok: true });
     } catch (error) {
-      sendResponse({ ok: false, error: error instanceof Error ? error.message : '打开失败，请重试。' });
+      const preferences = await getPreferences().catch(() => DEFAULT_PREFERENCES);
+      sendResponse({ ok: false, error: error instanceof NavigationError ? error.message : translate('openFailed', preferences.language) });
     }
   })();
   return true;

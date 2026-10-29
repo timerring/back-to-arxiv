@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
-  "name": "Back to arXiv",
-  "version": "0.2.0",
-  "description": "从 alphaXiv 一键回到 arXiv 原文，保留论文版本，支持摘要/PDF/HTML (experimental)、复制链接和快捷键。",
+  "name": "__MSG_extName__",
+  "version": "0.3.0",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "minimum_chrome_version": "120",
   "permissions": ["storage", "activeTab", "clipboardWrite"],
   "action": {
-    "default_title": "Back to arXiv",
+    "default_title": "__MSG_extName__",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
@@ -30,7 +31,7 @@
   "commands": {
     "open-arxiv": {
       "suggested_key": { "default": "Alt+Shift+A", "mac": "Alt+Shift+A" },
-      "description": "按照偏好打开当前论文的 arXiv 原文"
+      "description": "__MSG_commandOpenArxiv__"
     }
   }
 }

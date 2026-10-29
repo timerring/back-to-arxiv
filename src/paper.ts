@@ -1,13 +1,9 @@
-export const READING_FORMAT_LABELS = {
-  abs: '摘要',
-  pdf: 'PDF',
-  html: 'HTML (experimental)',
-} as const;
+export const READING_FORMATS = ['abs', 'pdf', 'html'] as const;
 
-export type ReadingFormat = keyof typeof READING_FORMAT_LABELS;
+export type ReadingFormat = typeof READING_FORMATS[number];
 
 export function isReadingFormat(value: unknown): value is ReadingFormat {
-  return typeof value === 'string' && Object.hasOwn(READING_FORMAT_LABELS, value);
+  return READING_FORMATS.some((format) => format === value);
 }
 
 export interface Paper {

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
 import { openPaperTab } from '../src/navigation.ts';
+import { translate } from '../src/i18n.ts';
 import type { Preferences } from '../src/settings.ts';
 
 let preferences: Preferences;
@@ -22,11 +23,12 @@ async function navigate(tab = paperTab()): Promise<void> {
 }
 
 beforeEach(() => {
-  preferences = { format: 'abs', openInNewTab: false };
+  preferences = { format: 'abs', openInNewTab: false, language: 'en' };
   updates = [];
   creates = [];
   latestTab = paperTab();
   globalThis.chrome = {
+    i18n: { getUILanguage: () => 'zh-CN' },
     storage: { local: { get: async () => ({ preferences }) } },
     tabs: {
       get: async () => latestTab,
@@ -43,7 +45,7 @@ test('current-tab action keeps the paper version and strips source-only paramete
 });
 
 test('new-tab PDF action uses the same window and sits next to its source', async () => {
-  preferences = { format: 'pdf', openInNewTab: true };
+  preferences = { format: 'pdf', openInNewTab: true, language: 'en' };
   await navigate();
   assert.deepEqual(creates, [{
     url: 'https://arxiv.org/pdf/1706.03762v3',
@@ -56,14 +58,14 @@ test('new-tab PDF action uses the same window and sits next to its source', asyn
 });
 
 test('HTML opens the versioned paper in the current tab', async () => {
-  preferences = { format: 'html', openInNewTab: false };
+  preferences = { format: 'html', openInNewTab: false, language: 'en' };
   await navigate();
   assert.deepEqual(updates, [{ id: 42, properties: { url: 'https://arxiv.org/html/1706.03762v3' } }]);
   assert.deepEqual(creates, []);
 });
 
 test('HTML in a new tab retains the source tab and explicit paper version', async () => {
-  preferences = { format: 'html', openInNewTab: true };
+  preferences = { format: 'html', openInNewTab: true, language: 'en' };
   await navigate();
   assert.deepEqual(creates, [{
     url: 'https://arxiv.org/html/1706.03762v3',
@@ -120,4 +122,17 @@ test('navigation to an unrelated page during preference loading leaves it untouc
   await assert.rejects(() => openPaperTab(initialTab), /alphaXiv/);
   assert.deepEqual(updates, []);
   assert.deepEqual(creates, []);
+});
+
+
+test('navigation guidance uses the selected language', async () => {
+  for (const language of ['en', 'zh_CN', 'auto'] as const) {
+    preferences.language = language;
+    await assert.rejects(() => navigate(paperTab({ url: 'https://example.org/' })), {
+      message: translate('unsupportedPage', language),
+    });
+    await assert.rejects(() => navigate(paperTab({ id: undefined })), {
+      message: translate('invalidTab', language),
+    });
+  }
 });
