@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Back to arXiv</title>
+    <link rel="stylesheet" href="popup.css" />
+    <script src="popup.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" fill="none">
+            <path d="M20.5 8.5h-9v15h12v-12l-3-3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" />
+            <path d="M20 8.5v4h3.5M17.5 16H7m0 0 3-3m-3 3 3 3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </span>
+        <div>
+          <h1>Back to arXiv</h1>
+          <p class="tagline">回到论文原文</p>
+        </div>
+        <span class="edition">01</span>
+      </header>
+
+      <section class="paper-card" aria-labelledby="paper-label">
+        <div class="paper-meta">
+          <span id="paper-label">当前论文</span>
+          <span id="paper-source" class="source">正在读取</span>
+        </div>
+        <p id="paper-id" class="paper-id">准备打开原文</p>
+        <p id="paper-note" class="paper-note">正在识别当前页面…</p>
+      </section>
+
+      <div class="actions">
+        <button id="open-paper" class="button primary" type="button" disabled>
+          <span id="open-label">打开 arXiv</span>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        </button>
+        <button id="copy-link" class="button secondary" type="button" disabled>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.4" /><path d="M12 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.4" /></svg>
+          <span>复制原文链接</span>
+        </button>
+      </div>
+
+      <section class="preferences" aria-label="阅读偏好">
+        <fieldset id="format-fieldset" disabled>
+          <legend>默认打开</legend>
+          <div class="segmented">
+            <label><input id="format-abs" type="radio" name="format" value="abs" checked /><span>摘要页</span></label>
+            <label><input id="format-pdf" type="radio" name="format" value="pdf" /><span>PDF 原文</span></label>
+            <label><input id="format-html" type="radio" name="format" value="html" aria-label="HTML (experimental)" aria-describedby="html-note" /><span>HTML<small>(experimental)</small></span></label>
+          </div>
+        </fieldset>
+        <p id="html-note" class="format-note" hidden>HTML 为 arXiv 实验性格式，支持范围取决于论文版本。需要其他格式时，可切换摘要页或 PDF。</p>
+        <label class="toggle-row" for="new-tab">
+          <span>在新标签页打开</span>
+          <span class="switch"><input id="new-tab" type="checkbox" disabled /><span class="switch-track" aria-hidden="true"></span></span>
+        </label>
+      </section>
+
+      <p id="status" class="status" role="status" aria-live="polite" aria-atomic="true">设置会自动保存在此浏览器</p>
+
+      <footer>
+        <span class="shortcut-label">快捷键 <kbd id="shortcut">读取中</kbd></span>
+        <button id="edit-shortcut" class="text-button" type="button" aria-label="在 Chrome 中设置快捷键">设置 <span aria-hidden="true">↗</span></button>
+      </footer>
+    </main>
+  </body>
+</html>

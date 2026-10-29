@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "Back to arXiv",
+  "version": "0.2.0",
+  "description": "从 alphaXiv 一键回到 arXiv 原文，保留论文版本，支持摘要/PDF/HTML (experimental)、复制链接和快捷键。",
+  "minimum_chrome_version": "120",
+  "permissions": ["storage", "activeTab", "clipboardWrite"],
+  "action": {
+    "default_title": "Back to arXiv",
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "background": { "service_worker": "background.js", "type": "module" },
+  "content_scripts": [{
+    "matches": ["https://alphaxiv.org/*", "https://www.alphaxiv.org/*"],
+    "js": ["content.js"],
+    "run_at": "document_idle"
+  }],
+  "commands": {
+    "open-arxiv": {
+      "suggested_key": { "default": "Alt+Shift+A", "mac": "Alt+Shift+A" },
+      "description": "按照偏好打开当前论文的 arXiv 原文"
+    }
+  }
+}
