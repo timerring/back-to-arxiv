@@ -1,14 +1,16 @@
-import { isReadingFormat, type ReadingFormat } from './paper';
+import { isPaperVersion, isReadingFormat, type PaperVersion, type ReadingFormat } from './paper';
 import { isLanguagePreference, type LanguagePreference } from './i18n';
 
 export interface Preferences {
   format: ReadingFormat;
+  version: PaperVersion;
   openInNewTab: boolean;
   language: LanguagePreference;
 }
 
 export const DEFAULT_PREFERENCES: Readonly<Preferences> = Object.freeze({
   format: 'abs',
+  version: 'current',
   openInNewTab: false,
   language: 'en',
 });
@@ -20,6 +22,7 @@ export function normalizePreferences(value: unknown): Preferences {
   return {
     language: isLanguagePreference(record.language) ? record.language : DEFAULT_PREFERENCES.language,
     format: isReadingFormat(record.format) ? record.format : DEFAULT_PREFERENCES.format,
+    version: isPaperVersion(record.version) ? record.version : DEFAULT_PREFERENCES.version,
     openInNewTab: typeof record.openInNewTab === 'boolean'
       ? record.openInNewTab
       : DEFAULT_PREFERENCES.openInNewTab,

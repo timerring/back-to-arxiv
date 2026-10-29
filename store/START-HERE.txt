@@ -1,13 +1,13 @@
-Back to arXiv 0.3.0 — Chrome Web Store 上架资料
-准备日期：2026-10-29
+Back to arXiv 0.4.0 — Chrome Web Store 上架资料
+准备日期：2026-10-30
 
 1. 上传哪个文件
 
-在 Chrome Web Store Developer Dashboard 新建扩展时，选择：
-back-to-arxiv-0.3.0.zip
+在 Chrome Web Store Developer Dashboard 已有扩展的 Package 页选择 Upload new package；新建草稿时选择 Add new item。上传文件为：
+back-to-arxiv-0.4.0.zip
 
 这是安装包，manifest.json 已位于 ZIP 根目录，包含构建后的脚本、界面、语言文件和图标。
-back-to-arxiv-0.3.0-store-kit.zip 是包含全部材料的资料包。先解压资料包，再选取其中的安装包上传。
+back-to-arxiv-0.4.0-store-kit.zip 是包含全部材料的资料包。先解压资料包，再选取其中的安装包上传。
 每个 ZIP 附带 .sha256 校验文件。
 
 2. 商店信息填写
@@ -34,11 +34,11 @@ back-to-arxiv-0.3.0-store-kit.zip 是包含全部材料的资料包。先解压�
 
 4. 隐私与审核
 
-privacy-practices.txt：单一用途、各权限用途、远程代码和数据处理说明，可按字段粘贴。
+privacy-practices.txt：单一用途、各权限用途、远程代码和数据处理说明，可按字段粘贴。本版本新增 contextMenus 权限，需填写对应理由。
 reviewer-instructions.txt：英文审核测试步骤，包含公开测试论文地址和期望结果。
 privacy-policy.html：双语隐私政策网页，默认英文，可展开简体中文。
 
-本地处理当前网址同样属于需要披露的数据处理。当前实现建议声明 Web history，范围明确为临时处理当前页面 URL；仅保存阅读和语言等偏好。
+本地处理网址同样属于需要披露的数据处理。当前实现建议声明 Web history，范围为临时处理当前页面 URL 和用户主动调用右键菜单的论文链接目标 URL；仅持久保存阅读格式、版本、标签页和语言偏好。
 
 Privacy policy URL：
 https://timerring.com/back-to-arxiv/store/privacy-policy.html
@@ -58,7 +58,16 @@ GitHub Pages 从 main 分支发布 store/privacy-policy.html。修改政策并�
 
 资料准备完成后，发布动作仍由开发者在后台执行。当前材料不代表已经提交或获批。
 
-5. 本地重建
+5. 本版本变化
+
+• 支持在其他网页上右键 alphaXiv/arXiv 论文链接，按保存的格式和版本在新标签页打开。
+• 增加保留当前版本/最新版本偏好，默认保留当前版本。最新版本使用省略版本号的链接，由 arXiv 提供最新论文版本。
+• 面板和页面控件的主复制按钮仍复制摘要页；箭头菜单可复制摘要、PDF、HTML 链接，采用所选版本偏好，默认阅读格式保持原值。
+• 从旧版本升级保留已有偏好，新增的版本选项默认为保留当前版本。
+
+上传 0.4.0 后，同步更新详细介绍、截图、隐私权限理由和审核说明。
+
+6. 本地重建
 
 在仓库根目录运行：
 npm ci
@@ -81,7 +90,7 @@ npm run package:store
 
 后续上传新版本时，更新 package.json、package-lock.json 和 public/manifest.json，使版本号高于商店已上传版本，并同步文案及截图。
 
-6. 官方参考
+7. 官方参考
 
 ZIP 结构与清单：
 https://developer.chrome.com/docs/webstore/prepare

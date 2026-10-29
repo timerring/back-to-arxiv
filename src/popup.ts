@@ -1,4 +1,4 @@
-import { buildArxivUrl, isReadingFormat, parsePaperUrl } from './paper';
+import { buildArxivUrl, getPaperId, isPaperVersion, isReadingFormat, parsePaperUrl, type ReadingFormat } from './paper';
 import { isLanguagePreference, localize, resolveLocale, translate, type LanguagePreference, type MessageKey } from './i18n';
 import { getPreferences, normalizePreferences, savePreferences } from './settings';
 
@@ -15,11 +15,16 @@ function element<T extends HTMLElement>(id: string): T {
 
 const openButton = element<HTMLButtonElement>('open-paper');
 const copyButton = element<HTMLButtonElement>('copy-link');
+const copyActions = element<HTMLDivElement>('copy-actions');
+const copyMenuToggle = element<HTMLButtonElement>('copy-menu-toggle');
+const copyMenu = element<HTMLDivElement>('copy-menu');
+const copyMenuItems = Array.from(copyMenu.querySelectorAll<HTMLButtonElement>('[data-copy-format]'));
 const formatFieldset = element<HTMLFieldSetElement>('format-fieldset');
 const formatRadios = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="format"]'));
 const htmlNote = element<HTMLParagraphElement>('html-note');
 const newTabCheckbox = element<HTMLInputElement>('new-tab');
 const languageSelect = element<HTMLSelectElement>('language');
+const versionSelect = element<HTMLSelectElement>('paper-version');
 const status = element<HTMLParagraphElement>('status');
 
 let activeTabId: number | undefined;
@@ -54,16 +59,20 @@ function renderControls(): void {
   localize(document, language());
   document.documentElement.lang = resolveLocale(language()).replace('_', '-');
   openButton.disabled = paper === null || preferences === null || saving || opening;
-  copyButton.disabled = paper === null || copying;
+  copyButton.disabled = paper === null || preferences === null || saving || opening || copying;
+  copyMenuToggle.disabled = copyButton.disabled;
+  if (copyMenuToggle.disabled) closeCopyMenu();
   formatFieldset.disabled = preferences === null || saving || opening;
   newTabCheckbox.disabled = preferences === null || saving || opening;
   languageSelect.disabled = preferences === null || saving || opening;
+  versionSelect.disabled = preferences === null || saving || opening;
   element('open-label').textContent = t(opening ? 'opening' : 'openArxiv');
   element('shortcut').textContent = shortcut || t('shortcutUnset');
   if (preferences !== null) {
     for (const radio of formatRadios) radio.checked = radio.value === preferences.format;
     newTabCheckbox.checked = preferences.openInNewTab;
     languageSelect.value = preferences.language;
+    versionSelect.value = preferences.version;
   }
   htmlNote.hidden = preferences?.format !== 'html';
   renderPaper();
@@ -77,10 +86,10 @@ function renderPaper(): void {
   paperId.closest<HTMLElement>('.paper-card')!.dataset.empty = String(paper === null);
   source.dataset.ready = String(paper !== null);
   if (paper !== null) {
-    paperId.textContent = paper.id;
+    paperId.textContent = getPaperId(paper, preferences?.version ?? 'current');
     source.textContent = t(paper.source === 'alphaxiv' ? 'sourceAlphaXiv' : 'sourceArxiv');
-    note.textContent = buildArxivUrl(paper, preferences?.format ?? 'abs').replace('https://', '');
-    note.title = t('versionNote');
+    note.textContent = buildArxivUrl(paper, preferences?.format ?? 'abs', preferences?.version ?? 'current').replace('https://', '');
+    note.title = t(preferences?.version === 'latest' ? 'latestVersionNote' : 'versionNote');
   } else {
     paperId.textContent = t('emptyPaper');
     source.textContent = t('waitingPaper');
@@ -90,8 +99,10 @@ function renderPaper(): void {
 }
 
 function updateTab(tab: chrome.tabs.Tab): void {
+  const nextPaper = parsePaperUrl(tab.pendingUrl ?? tab.url ?? '');
+  if (activeTabId !== tab.id || paper?.id !== nextPaper?.id || paper?.source !== nextPaper?.source) closeCopyMenu();
   activeTabId = tab.id;
-  paper = parsePaperUrl(tab.pendingUrl ?? tab.url ?? '');
+  paper = nextPaper;
   renderControls();
 }
 
@@ -133,6 +144,60 @@ languageSelect.addEventListener('change', () => {
     void persistPreferences({ language: languageSelect.value });
   }
 });
+versionSelect.addEventListener('change', () => {
+  if (isPaperVersion(versionSelect.value)) {
+    void persistPreferences({ version: versionSelect.value });
+  }
+});
+
+function closeCopyMenu(restoreFocus = false): void {
+  copyMenu.hidden = true;
+  copyMenuToggle.setAttribute('aria-expanded', 'false');
+  if (restoreFocus && copyMenuToggle.disabled === false) copyMenuToggle.focus();
+}
+
+function openCopyMenu(last = false): void {
+  if (copyMenuToggle.disabled) return;
+  copyMenu.hidden = false;
+  copyMenuToggle.setAttribute('aria-expanded', 'true');
+  copyMenuItems[last ? copyMenuItems.length - 1 : 0]?.focus();
+}
+
+copyMenuToggle.addEventListener('click', () => {
+  if (copyMenu.hidden) openCopyMenu();
+  else closeCopyMenu(true);
+});
+copyMenuToggle.addEventListener('keydown', (event) => {
+  if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+    event.preventDefault();
+    openCopyMenu(event.key === 'ArrowUp');
+  }
+});
+copyMenu.addEventListener('keydown', (event) => {
+  const current = copyMenuItems.indexOf(document.activeElement as HTMLButtonElement);
+  let next: number;
+  if (event.key === 'ArrowDown') next = (current + 1) % copyMenuItems.length;
+  else if (event.key === 'ArrowUp') next = (current + copyMenuItems.length - 1) % copyMenuItems.length;
+  else if (event.key === 'Home') next = 0;
+  else if (event.key === 'End') next = copyMenuItems.length - 1;
+  else if (event.key === 'Tab') { closeCopyMenu(); return; }
+  else return;
+  event.preventDefault();
+  copyMenuItems[next]?.focus();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape' && copyMenu.hidden === false) {
+    event.preventDefault();
+    event.stopPropagation();
+    closeCopyMenu(true);
+  }
+});
+document.addEventListener('pointerdown', (event) => {
+  if (event.composedPath().includes(copyActions) === false) closeCopyMenu();
+});
+document.addEventListener('focusin', (event) => {
+  if (event.composedPath().includes(copyActions) === false) closeCopyMenu();
+});
 
 openButton.addEventListener('click', async () => {
   if (paper === null || activeTabId === undefined || opening || saving) return;
@@ -159,9 +224,11 @@ openButton.addEventListener('click', async () => {
   }
 });
 
-copyButton.addEventListener('click', async () => {
-  if (paper === null || copying) return;
-  const link = buildArxivUrl(paper, 'abs');
+async function copyLink(format: ReadingFormat): Promise<void> {
+  if (paper === null || preferences === null || copying || saving || opening) return;
+  const link = buildArxivUrl(paper, format, preferences.version);
+  const fromMenu = copyMenu.hidden === false;
+  closeCopyMenu();
   copying = true;
   renderControls();
   try {
@@ -172,8 +239,18 @@ copyButton.addEventListener('click', async () => {
   } finally {
     copying = false;
     renderControls();
+    if (fromMenu && (document.activeElement === document.body || copyMenu.contains(document.activeElement))) {
+      copyMenuToggle.focus();
+    }
   }
-});
+}
+
+copyButton.addEventListener('click', () => { void copyLink('abs'); });
+for (const item of copyMenuItems) {
+  item.addEventListener('click', () => {
+    if (isReadingFormat(item.dataset.copyFormat)) void copyLink(item.dataset.copyFormat);
+  });
+}
 
 element<HTMLButtonElement>('edit-shortcut').addEventListener('click', async () => {
   try {

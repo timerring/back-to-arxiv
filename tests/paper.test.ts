@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildArxivUrl, parsePaperUrl, type Paper, type ReadingFormat } from '../src/paper.ts';
+import { buildArxivUrl, getPaperId, isPaperVersion, parsePaperUrl, type Paper, type PaperVersion, type ReadingFormat } from '../src/paper.ts';
 
 test('all supported alphaXiv routes resolve to the same paper and preserve its version', () => {
   for (const host of ['alphaxiv.org', 'www.alphaxiv.org']) {
@@ -126,4 +126,35 @@ test('URL generation validates its inputs at the trusted navigation boundary', (
   assert.throws(() => buildArxivUrl({ ...paper, id: '1706.03762?redirect=evil' }, 'abs'), TypeError);
   assert.throws(() => buildArxivUrl(paper, 'overview' as ReadingFormat), TypeError);
   assert.throws(() => buildArxivUrl(null as unknown as Paper, 'abs'), TypeError);
+  assert.throws(() => buildArxivUrl(paper, 'abs', 'v3' as PaperVersion), TypeError);
+});
+
+test('latest version URLs remove only the explicit version across formats and identifier schemes', () => {
+  for (const [id, latestId] of [
+    ['1706.03762v7', '1706.03762'],
+    ['0706.0001v123', '0706.0001'],
+    ['hep-th/9901001v2', 'hep-th/9901001'],
+    ['math.GT/0309136v12', 'math.GT/0309136'],
+    ['1706.03762', '1706.03762'],
+    ['math.GT/0309136', 'math.GT/0309136'],
+  ]) {
+    const paper: Paper = { id: id!, source: 'alphaxiv' };
+    for (const format of ['abs', 'pdf', 'html'] as const) {
+      assert.equal(buildArxivUrl(paper, format, 'latest'), `https://arxiv.org/${format}/${latestId}`);
+      assert.equal(buildArxivUrl(paper, format, 'current'), `https://arxiv.org/${format}/${id}`);
+      assert.equal(buildArxivUrl(paper, format), `https://arxiv.org/${format}/${id}`);
+    }
+    assert.equal(getPaperId(paper, 'latest'), latestId);
+    assert.equal(getPaperId(paper), id);
+    assert.equal(paper.id, id, 'Version selection keeps the parsed source identifier intact');
+  }
+});
+
+test('version selection accepts only the two supported policies', () => {
+  assert.equal(isPaperVersion('current'), true);
+  assert.equal(isPaperVersion('latest'), true);
+  for (const value of [undefined, null, false, '', 'v3', 'LATEST', {}, 'constructor']) {
+    assert.equal(isPaperVersion(value), false);
+  }
+  assert.throws(() => getPaperId({ id: '1706.03762v0', source: 'arxiv' }, 'latest'), TypeError);
 });

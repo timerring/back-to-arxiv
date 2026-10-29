@@ -37,10 +37,20 @@
           <span id="open-label" data-i18n="openArxiv">Open arXiv</span>
           <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" /></svg>
         </button>
-        <button id="copy-link" class="button secondary" type="button" disabled>
-          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.4" /><path d="M12 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.4" /></svg>
-          <span data-i18n="copyLink">Copy original link</span>
-        </button>
+        <div id="copy-actions" class="copy-actions">
+          <button id="copy-link" class="button secondary" type="button" disabled>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><rect x="7" y="7" width="9" height="10" rx="2" stroke="currentColor" stroke-width="1.4" /><path d="M12 7V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.4" /></svg>
+            <span data-i18n="copyLink">Copy original link</span>
+          </button>
+          <button id="copy-menu-toggle" class="button secondary" type="button" aria-label="More copy formats" data-i18n-aria-label="copyFormats" aria-haspopup="menu" aria-controls="copy-menu" aria-expanded="false" disabled>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 12 4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+          </button>
+          <div id="copy-menu" class="copy-menu" role="menu" aria-label="Copy link format" data-i18n-aria-label="copyFormatMenu" hidden>
+            <button id="copy-abs" type="button" role="menuitem" tabindex="-1" data-copy-format="abs" data-i18n="copyAbsLink">Copy abstract link</button>
+            <button id="copy-pdf" type="button" role="menuitem" tabindex="-1" data-copy-format="pdf" data-i18n="copyPdfLink">Copy PDF link</button>
+            <button id="copy-html" type="button" role="menuitem" tabindex="-1" data-copy-format="html" data-i18n="copyHtmlLink">Copy HTML link (experimental)</button>
+          </div>
+        </div>
       </div>
 
       <section class="preferences" aria-label="Reading preferences" data-i18n-aria-label="readingPreferences">
@@ -53,11 +63,18 @@
           </div>
         </fieldset>
         <p id="html-note" class="format-note" data-i18n="htmlNote" hidden>HTML is an experimental arXiv format. Availability depends on the paper version. Choose Abstract or PDF for another format.</p>
+        <div class="select-row version-row">
+          <label for="paper-version" data-i18n="paperVersion">Paper version</label>
+          <select id="paper-version" disabled>
+            <option value="current" data-i18n="versionCurrent" selected>Current version</option>
+            <option value="latest" data-i18n="versionLatest">Latest version</option>
+          </select>
+        </div>
         <label class="toggle-row" for="new-tab">
           <span data-i18n="openInNewTab">Open in a new tab</span>
           <span class="switch"><input id="new-tab" type="checkbox" disabled /><span class="switch-track" aria-hidden="true"></span></span>
         </label>
-        <div class="language-row">
+        <div class="select-row language-row">
           <label for="language" data-i18n="language">Language</label>
           <select id="language" disabled>
             <option value="en" data-i18n="languageEnglish" selected>English</option>

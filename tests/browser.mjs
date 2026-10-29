@@ -47,6 +47,35 @@ async function assertPopupFits(popup) {
   assert.equal(await popup.locator('body').evaluate((body) => body.scrollWidth), 360);
 }
 
+async function assertCopyMenuFits(popup) {
+  await assertPopupFits(popup);
+  const body = await popup.locator('body').boundingBox();
+  const menu = await popup.locator('#copy-menu').boundingBox();
+  assert.ok(body && menu && menu.y >= 0 && menu.x >= 0 && menu.y + menu.height <= body.height && menu.x + menu.width <= 360,
+    'Expanded copy menu fits inside the real popup bounds');
+}
+
+async function readClipboard(paper) {
+  await paper.bringToFront();
+  return paper.evaluate(() => navigator.clipboard.readText());
+}
+
+async function assertContextMenuRegistered(worker) {
+  assert.equal(await worker.evaluate(() => chrome.contextMenus.onClicked.hasListeners()), true);
+  await worker.evaluate(() => new Promise((resolve, reject) => {
+    let attempts = 0;
+    function checkRegistration() {
+      chrome.contextMenus.update('back-to-arxiv-open-link', {}, () => {
+        const error = chrome.runtime.lastError?.message;
+        if (error && ++attempts < 20) setTimeout(checkRegistration, 50);
+        else if (error) reject(new Error(error));
+        else resolve();
+      });
+    }
+    checkRegistration();
+  }));
+}
+
 async function openPopup(context, paperPage, extensionId) {
   await paperPage.bringToFront();
   const browserCdp = await context.browser().newBrowserCDPSession();
@@ -88,6 +117,9 @@ try {
   const extensionId = new URL(worker.url()).host;
   const setPreferences = (value) => worker.evaluate((preferences) => chrome.storage.local.set({ preferences }), value);
   await setPreferences({ format: 'abs', openInNewTab: false });
+
+  await assertContextMenuRegistered(worker);
+  console.log('PASS: the real Chrome context-menu entry and click listener are registered.');
 
   const paper = await context.newPage();
   await paper.goto('https://www.alphaxiv.org/overview/1706.03762v3?utm_source=test#discussion');
@@ -145,14 +177,14 @@ try {
   await popup.locator('#new-tab').check();
   await popup.waitForFunction((message) => document.getElementById('status')?.textContent === message, en.savedPreferences.message);
   await waitForLink(paper, 'https://arxiv.org/pdf/1706.03762v3');
-  assert.deepEqual(await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences), { format: 'pdf', openInNewTab: true, language: 'en' });
+  assert.deepEqual(await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences), { format: 'pdf', openInNewTab: true, language: 'en', version: 'current' });
   await popup.locator('#format-html').check();
   await popup.waitForFunction((message) => document.getElementById('status')?.textContent === message, en.savedPreferences.message);
   await waitForLink(paper, 'https://arxiv.org/html/1706.03762v3');
   assert.equal(await popup.locator('#html-note').isVisible(), true);
   assert.match(await paper.getByRole('link', { name: en.openArxiv.message }).getAttribute('title'), /HTML/);
   assert.match(await paper.locator('#back-to-arxiv-root .detail').innerText(), /HTML/);
-  assert.deepEqual(await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences), { format: 'html', openInNewTab: true, language: 'en' });
+  assert.deepEqual(await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences), { format: 'html', openInNewTab: true, language: 'en', version: 'current' });
   await popup.close();
   popup = await openPopup(context, paper, extensionId);
   await popup.waitForFunction(() => document.getElementById('format-html')?.checked === true);
@@ -165,9 +197,14 @@ try {
   assert.equal(await popup.locator('#format-html').getAttribute('aria-label'), zh.formatHtml.message);
   assert.equal(await popup.locator('#html-note').innerText(), zh.htmlNote.message);
   await assertPopupFits(popup);
+  await popup.locator('#copy-menu-toggle').click();
+  await assertCopyMenuFits(popup);
+  await popup.locator('#copy-menu-toggle').press('Escape');
+  assert.equal(await popup.locator('#copy-menu').isHidden(), true);
   assert.equal(await paper.getByRole('button', { name: zh.copyLink.message, exact: true }).count(), 1);
   assert.match(await paper.getByRole('link', { name: zh.openArxiv.message, exact: true }).getAttribute('title'), /HTML/);
-  assert.deepEqual(await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences), { format: 'html', openInNewTab: true, language: 'zh_CN' });
+  assert.deepEqual(await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences), { format: 'html', openInNewTab: true, language: 'zh_CN', version: 'current' });
+  await popup.locator('h1').click(); // Capture the resting UI after keyboard-focus checks.
   await popup.locator('body').screenshot({ path: join(output, 'popup-zh-CN.png') });
   await popup.close();
   popup = await openPopup(context, paper, extensionId);
@@ -182,6 +219,7 @@ try {
   assert.equal(await popup.locator('#format-html').getAttribute('aria-label'), en.formatHtml.message);
   assert.equal(await popup.locator('#html-note').innerText(), en.htmlNote.message);
   await assertPopupFits(popup);
+  await assertContextMenuRegistered(worker);
   console.log('PASS: English is the default; Chinese and English localize the popup and live page control, including accessibility labels, and survive reopening.');
   await popup.locator('body').screenshot({ path: join(output, 'popup.png') });
   await popup.bringToFront();
@@ -190,6 +228,88 @@ try {
   await paper.bringToFront();
   assert.equal(await paper.evaluate(() => navigator.clipboard.readText()), 'https://arxiv.org/abs/1706.03762v3');
   console.log('PASS: popup persists HTML across reopening, updates the page control, shows the experimental note, and copies the versioned abstract link.');
+
+  // Copy choices are single actions, independent of the saved reading format.
+  for (const version of ['current', 'latest']) {
+    await popup.bringToFront();
+    await popup.locator('#paper-version').selectOption(version);
+    await popup.waitForFunction(() => document.getElementById('paper-version')?.disabled === false);
+    const id = version === 'current' ? '1706.03762v3' : '1706.03762';
+    await waitForLink(paper, `https://arxiv.org/html/${id}`);
+    assert.equal(await popup.locator('#paper-note').innerText(), `arxiv.org/html/${id}`);
+    for (const format of ['abs', 'pdf', 'html']) {
+      await popup.bringToFront();
+      await popup.locator('#copy-menu-toggle').click();
+      await assertCopyMenuFits(popup);
+      await popup.locator(`#copy-${format}`).click();
+      await popup.waitForFunction(() => document.getElementById('copy-link')?.disabled === false);
+      assert.equal(await popup.locator('#copy-menu').isHidden(), true);
+      assert.equal(await readClipboard(paper), `https://arxiv.org/${format}/${id}`);
+      const settings = await worker.evaluate(async () => (await chrome.storage.local.get('preferences')).preferences);
+      assert.equal(settings.format, 'html');
+      assert.equal(settings.version, version);
+    }
+    await popup.bringToFront();
+    await popup.locator('#copy-link').click();
+    await popup.waitForFunction(() => document.getElementById('copy-link')?.disabled === false);
+    assert.equal(await readClipboard(paper), `https://arxiv.org/abs/${id}`);
+  }
+  console.log('PASS: popup copies all three formats for current/latest versions while retaining the reading format.');
+
+  await popup.bringToFront();
+  await popup.locator('#copy-menu-toggle').click();
+  await popup.locator('#copy-abs').press('Escape');
+  assert.equal(await popup.locator('#copy-menu').isHidden(), true);
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'copy-menu-toggle');
+  await popup.locator('#copy-menu-toggle').click();
+  await popup.locator('h1').click();
+  assert.equal(await popup.locator('#copy-menu').isHidden(), true);
+  await popup.locator('#copy-menu-toggle').press('ArrowDown');
+  await popup.locator('#copy-abs').press('End');
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'copy-html');
+  await popup.locator('#copy-html').press('Enter');
+  await popup.waitForFunction(() => document.getElementById('copy-link')?.disabled === false);
+  assert.equal(await readClipboard(paper), 'https://arxiv.org/html/1706.03762');
+  console.log('PASS: copy menus support Escape, outside clicks, and keyboard selection.');
+
+  // The already-open page receives the same version preference and copy choices.
+  for (const format of ['abs', 'pdf', 'html']) {
+    await paper.bringToFront();
+    await paper.locator('#back-to-arxiv-root #copy-menu-toggle').click();
+    await paper.locator(`#back-to-arxiv-root #copy-${format}`).click();
+    await paper.waitForFunction(() => document.querySelector('#back-to-arxiv-root')?.shadowRoot?.querySelector('#copy-link')?.disabled === false);
+    assert.equal(await readClipboard(paper), `https://arxiv.org/${format}/1706.03762`);
+  }
+  await paper.locator('#back-to-arxiv-root #copy-menu-toggle').click();
+  await paper.locator('#back-to-arxiv-root #copy-abs').press('Escape');
+  assert.equal(await paper.locator('#back-to-arxiv-root #copy-menu').isHidden(), true);
+  assert.equal(await paper.evaluate(() => document.querySelector('#back-to-arxiv-root')?.shadowRoot?.activeElement?.id), 'copy-menu-toggle');
+  await paper.locator('#back-to-arxiv-root #copy-menu-toggle').click();
+  await paper.evaluate(() => history.pushState({}, '', '/abs/hep-th/9901001v2'));
+  await waitForLink(paper, 'https://arxiv.org/html/hep-th/9901001');
+  assert.equal(await paper.locator('#back-to-arxiv-root #copy-menu').isHidden(), true);
+  await paper.locator('#back-to-arxiv-root #copy-link').click();
+  await paper.waitForFunction(() => document.querySelector('#back-to-arxiv-root')?.shadowRoot?.querySelector('#copy-link')?.disabled === false);
+  assert.equal(await readClipboard(paper), 'https://arxiv.org/abs/hep-th/9901001');
+  console.log('PASS: the live page copies chosen formats, handles legacy/latest IDs, and dismisses its menu on SPA navigation.');
+
+  await popup.close();
+  await paper.goto('https://www.alphaxiv.org/abs/1706.03762v3');
+  await waitForLink(paper, 'https://arxiv.org/html/1706.03762');
+  popup = await openPopup(context, paper, extensionId);
+  assert.equal(await popup.locator('#paper-version').inputValue(), 'latest');
+  const [latestOpened] = await Promise.all([
+    context.waitForEvent('page'),
+    popup.locator('#open-paper').click(),
+  ]);
+  await latestOpened.waitForURL('https://arxiv.org/html/1706.03762', { waitUntil: 'commit' });
+  await latestOpened.close();
+  if (popup.isClosed() === false) await popup.close();
+  popup = await openPopup(context, paper, extensionId);
+  await popup.locator('#paper-version').selectOption('current');
+  await popup.waitForFunction(() => document.getElementById('paper-version')?.disabled === false);
+  await waitForLink(paper, 'https://arxiv.org/html/1706.03762v3');
+  console.log('PASS: version preference survives reopening and the service worker opens the latest URL.');
 
   const [openedFromPopup] = await Promise.all([
     context.waitForEvent('page'),
@@ -216,6 +336,7 @@ try {
   popup = await openPopup(context, paper, extensionId);
   assert.equal(await popup.locator('#open-paper').isDisabled(), true);
   assert.equal(await popup.locator('#copy-link').isDisabled(), true);
+  assert.equal(await popup.locator('#copy-menu-toggle').isDisabled(), true);
   assert.equal(await popup.locator('#format-fieldset').isEnabled(), true);
   await assertPopupFits(popup);
   await popup.locator('#language').selectOption('zh_CN');
@@ -225,6 +346,12 @@ try {
   assert.deepEqual(browserErrors, []);
   console.log('PASS: unrelated pages receive no injected UI; popup actions are disabled while preferences remain available.');
   console.log(`Browser integration passed. Screenshots: ${output}`);
+} catch (error) {
+  const popup = context?.pages().find((page) => page.url().startsWith('chrome-extension://') && page.url().endsWith('/popup.html'));
+  if (popup && popup.isClosed() === false) {
+    await popup.screenshot({ path: join(output, 'popup-failure.png'), fullPage: true }).catch(() => undefined);
+  }
+  throw error;
 } finally {
   await context?.close();
   await rm(profile, { recursive: true, force: true });

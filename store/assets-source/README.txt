@@ -1,6 +1,6 @@
 Back to arXiv — store artwork sources
 
-popup-en.png and popup-zh-CN.png are authentic v0.3.0 extension popup captures
+popup-en.png and popup-zh-CN.png are authentic v0.4.0 extension popup captures
 from the browser integration suite. The artwork displays these captures as
 images without changing their contents. HTML files in this folder are generated
 by scripts/store-assets.mjs and provide the surrounding layout and copy.

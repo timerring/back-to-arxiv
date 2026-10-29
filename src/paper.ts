@@ -1,9 +1,14 @@
 export const READING_FORMATS = ['abs', 'pdf', 'html'] as const;
 
 export type ReadingFormat = typeof READING_FORMATS[number];
+export type PaperVersion = 'current' | 'latest';
 
 export function isReadingFormat(value: unknown): value is ReadingFormat {
   return READING_FORMATS.some((format) => format === value);
+}
+
+export function isPaperVersion(value: unknown): value is PaperVersion {
+  return value === 'current' || value === 'latest';
 }
 
 export interface Paper {
@@ -20,7 +25,7 @@ const SOURCES = new Map<string, Paper['source']>([
 ]);
 
 // arXiv uses both YYMM.NNNN(N) and the historical archive/YYMMNNN scheme.
-// Keep the version suffix as part of the identifier throughout navigation.
+// Parsing retains explicit versions; the selected version policy controls output.
 const PAPER_ID = /^(?:\d{2}(?:0[1-9]|1[0-2])\.\d{4,5}|[a-z][a-z-]*(?:\.[A-Z]{2})?\/\d{2}(?:0[1-9]|1[0-2])\d{3})(?:v[1-9]\d*)?$/;
 
 /** Extract an identifier from a supported paper page on a trusted host. */
@@ -58,13 +63,22 @@ export function parsePaperUrl(value: string): Paper | null {
   return PAPER_ID.test(id) ? { id, source } : null;
 }
 
-/** Generate a canonical, query-free arXiv URL for the requested format. */
-export function buildArxivUrl(paper: Paper, format: ReadingFormat): string {
+/** Resolve the requested version while retaining the source paper identifier. */
+export function getPaperId(paper: Paper, version: PaperVersion = 'current'): string {
   if (typeof paper?.id !== 'string' || PAPER_ID.test(paper.id) === false) {
     throw new TypeError('A valid arXiv paper identifier is required.');
   }
+  if (isPaperVersion(version) === false) {
+    throw new TypeError('The paper version must be current or latest.');
+  }
+  return version === 'latest' ? paper.id.replace(/v[1-9]\d*$/, '') : paper.id;
+}
+
+/** Generate a canonical, query-free arXiv URL for the requested format and version. */
+export function buildArxivUrl(paper: Paper, format: ReadingFormat, version: PaperVersion = 'current'): string {
+  const id = getPaperId(paper, version);
   if (isReadingFormat(format) === false) {
     throw new TypeError('The reading format must be abs, pdf or html.');
   }
-  return `https://arxiv.org/${format}/${paper.id}`;
+  return `https://arxiv.org/${format}/${id}`;
 }

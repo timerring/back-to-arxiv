@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
-import { openPaperTab } from '../src/navigation.ts';
+import { openPaperLink, openPaperTab } from '../src/navigation.ts';
 import { translate } from '../src/i18n.ts';
 import type { Preferences } from '../src/settings.ts';
 
@@ -23,7 +23,7 @@ async function navigate(tab = paperTab()): Promise<void> {
 }
 
 beforeEach(() => {
-  preferences = { format: 'abs', openInNewTab: false, language: 'en' };
+  preferences = { format: 'abs', openInNewTab: false, language: 'en', version: 'current' };
   updates = [];
   creates = [];
   latestTab = paperTab();
@@ -45,7 +45,7 @@ test('current-tab action keeps the paper version and strips source-only paramete
 });
 
 test('new-tab PDF action uses the same window and sits next to its source', async () => {
-  preferences = { format: 'pdf', openInNewTab: true, language: 'en' };
+  preferences = { format: 'pdf', openInNewTab: true, language: 'en', version: 'current' };
   await navigate();
   assert.deepEqual(creates, [{
     url: 'https://arxiv.org/pdf/1706.03762v3',
@@ -58,14 +58,14 @@ test('new-tab PDF action uses the same window and sits next to its source', asyn
 });
 
 test('HTML opens the versioned paper in the current tab', async () => {
-  preferences = { format: 'html', openInNewTab: false, language: 'en' };
+  preferences = { format: 'html', openInNewTab: false, language: 'en', version: 'current' };
   await navigate();
   assert.deepEqual(updates, [{ id: 42, properties: { url: 'https://arxiv.org/html/1706.03762v3' } }]);
   assert.deepEqual(creates, []);
 });
 
 test('HTML in a new tab retains the source tab and explicit paper version', async () => {
-  preferences = { format: 'html', openInNewTab: true, language: 'en' };
+  preferences = { format: 'html', openInNewTab: true, language: 'en', version: 'current' };
   await navigate();
   assert.deepEqual(creates, [{
     url: 'https://arxiv.org/html/1706.03762v3',
@@ -135,4 +135,64 @@ test('navigation guidance uses the selected language', async () => {
       message: translate('invalidTab', language),
     });
   }
+});
+
+test('latest-version preference applies to both current and new-tab navigation', async () => {
+  preferences.version = 'latest';
+  preferences.format = 'html';
+  await navigate();
+  assert.equal(updates[0]?.properties.url, 'https://arxiv.org/html/1706.03762');
+  preferences.openInNewTab = true;
+  await navigate(paperTab({ url: 'https://arxiv.org/pdf/hep-th/9901001v2.pdf' }));
+  assert.equal(creates[0]?.url, 'https://arxiv.org/html/hep-th/9901001');
+});
+
+test('context link uses the clicked URL from an unrelated source and opens a neighboring new tab', async () => {
+  preferences.format = 'pdf';
+  latestTab = paperTab({ url: undefined, pendingUrl: undefined, index: 6, windowId: 12 });
+  await openPaperLink('https://www.alphaxiv.org/abs/2401.12345v2?utm_source=test#discussion', latestTab);
+  assert.deepEqual(creates, [{
+    url: 'https://arxiv.org/pdf/2401.12345v2', active: true, openerTabId: 42, index: 7, windowId: 12,
+  }]);
+  assert.deepEqual(updates, []);
+});
+
+test('context link applies the latest-version preference independently of its source page', async () => {
+  preferences.version = 'latest';
+  preferences.format = 'html';
+  latestTab = paperTab({ url: 'https://example.org/reading-list' });
+  await openPaperLink('https://arxiv.org/abs/math.GT/0309136v2', latestTab);
+  assert.equal(creates[0]?.url, 'https://arxiv.org/html/math.GT/0309136');
+  assert.deepEqual(updates, []);
+});
+
+test('context link can open when the source tab is absent or closes during the action', async () => {
+  await openPaperLink('https://alphaxiv.org/abs/1706.03762v3');
+  chrome.tabs.get = async () => { throw new Error('Tab was closed'); };
+  await openPaperLink('https://alphaxiv.org/abs/1706.03762v3', paperTab());
+  assert.deepEqual(creates, [
+    { url: 'https://arxiv.org/abs/1706.03762v3', active: true },
+    { url: 'https://arxiv.org/abs/1706.03762v3', active: true },
+  ]);
+  assert.deepEqual(updates, []);
+});
+
+test('unsupported and misleading context links leave browser tabs intact', async () => {
+  for (const url of [
+    'https://example.org/abs/1706.03762',
+    'https://alphaxiv.org.evil.example/abs/1706.03762',
+    'https://alphaxiv.org/abs/1706.03762v0',
+    'https://alphaxiv.org/abs/1706.03762/comments',
+    'https://user@alphaxiv.org/abs/1706.03762',
+    'javascript:alert(1)',
+  ]) {
+    await assert.rejects(() => openPaperLink(url, paperTab()), /alphaXiv/);
+  }
+  assert.deepEqual(creates, []);
+  assert.deepEqual(updates, []);
+});
+
+test('context-link tab creation failures are returned to the caller', async () => {
+  chrome.tabs.create = async () => { throw new Error('Browser unavailable'); };
+  await assert.rejects(() => openPaperLink('https://alphaxiv.org/abs/1706.03762v3', paperTab()), /Browser unavailable/);
 });

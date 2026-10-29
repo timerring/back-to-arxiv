@@ -1,6 +1,9 @@
 import { NavigationError, openPaperTab } from './navigation';
 import { translate } from './i18n';
 import { DEFAULT_PREFERENCES, getPreferences } from './settings';
+import { registerContextMenu } from './context-menu';
+
+registerContextMenu();
 
 chrome.runtime.onMessage.addListener((message: unknown, sender, sendResponse) => {
   // Navigation requests originate in this extension's popup.

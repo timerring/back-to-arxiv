@@ -1,51 +1,57 @@
-Back to arXiv 0.3.0 — reviewer test instructions
+Back to arXiv 0.4.0 — reviewer test instructions
 
 Access and purpose
-The extension opens alphaXiv papers on arXiv and copies their arXiv links. It works without an account, payment, or credentials. Testing requires Chrome 120 or later and internet access to public paper pages.
+The extension opens and copies arXiv paper links from supported alphaXiv/arXiv pages and hyperlinks. Testing uses public paper pages and requires Chrome 120 or later.
 
 1. Initial state
-Install the submitted extension and pin Back to arXiv to the toolbar. Open or refresh:
+Install and pin Back to arXiv. Open or refresh:
 https://www.alphaxiv.org/abs/1706.03762v7
-Expected: Open arXiv and copy controls at the lower right. Fresh-install defaults: English, Abstract, Open in a new tab off.
+Expected: Open arXiv, Copy, and a copy-format menu at the lower right. Fresh defaults: English, Abstract, Current version, Open in a new tab off.
 
 2. Default navigation
 Click the page's Open arXiv control.
-Expected: the current tab navigates to:
-https://arxiv.org/abs/1706.03762v7
-The v7 version is retained. Return to the alphaXiv test URL.
+Expected current-tab destination: https://arxiv.org/abs/1706.03762v7
+Return to the alphaXiv test URL. The popup and shortcut use the same saved reading preferences as the page button.
 
-3. Copying
-Use the copy control beside the page button, then paste into a text field. Repeat using Copy original link in the toolbar popup.
-Expected for both:
-https://arxiv.org/abs/1706.03762v7
-Copy writes the abstract-page link, including when PDF or HTML is selected.
+3. Main Copy action
+Click Copy on the page and Copy original link in the popup; paste each result into a local text field.
+Expected: https://arxiv.org/abs/1706.03762v7
+The main Copy action uses the abstract-page format even when the reading format is PDF or HTML.
 
-4. PDF and new-tab preference
-On the alphaXiv test page, open the popup, select PDF, and enable Open in a new tab. Click Open arXiv in the popup.
-Expected: https://arxiv.org/pdf/1706.03762v7 opens in a new tab; the source remains open. Reopen the popup on the source: PDF and the new-tab preference remain selected. The page button uses the same preferences.
+4. Copy-format menus
+Open the arrow beside Copy in the popup and choose Copy PDF link.
+Expected: https://arxiv.org/pdf/1706.03762v7
+Choose Copy HTML link (experimental).
+Expected: https://arxiv.org/html/1706.03762v7
+Repeat using the page's copy menu, including Copy abstract link. The saved reading format stays unchanged. Escape or clicking outside closes an open menu; the actions are also keyboard-accessible.
 
-5. Experimental HTML
-On the source tab, select HTML (experimental) in the popup, then click Open arXiv.
-Expected destination: https://arxiv.org/html/1706.03762v7
-The popup explains that HTML availability depends on the paper version. arXiv supplies the HTML content; some papers or versions have no HTML edition. Abstract and PDF can be selected instead.
+5. Current and latest versions
+In the popup, select PDF and Latest version. The preview becomes arxiv.org/pdf/1706.03762. Open the paper; the destination URL omits v7. Return to the source and copy using each format: the abstract/PDF/HTML URLs also omit v7. Select Current version again; opening and copying retain v7. Latest version creates an unversioned URL locally, which arXiv resolves to its latest paper version.
 
-6. Shared shortcut
+6. Right-click links on another webpage
+Open the public repository README:
+https://github.com/timerring/back-to-arxiv
+Under Supported URLs, right-click the alphaXiv paper, version 7 test link and choose Open in arXiv. With PDF and Current version selected, expect a new tab at https://arxiv.org/pdf/1706.03762v7 while the GitHub page stays open. Repeat with the arXiv paper, version 7 link. Change the popup to Latest version, then repeat: the new tab uses https://arxiv.org/pdf/1706.03762. Link actions always use a new tab, including when Open in a new tab is off for page/popup/shortcut actions. Restore Current version.
+
+7. Experimental HTML and tab preference
+Return to the alphaXiv paper, select HTML (experimental), and enable Open in a new tab. Click Open arXiv in the popup.
+Expected new-tab destination: https://arxiv.org/html/1706.03762v7
+The source stays open. Reopen the popup: preferences persist. arXiv supplies HTML content; availability depends on the paper and version. Abstract and PDF are alternative reading choices.
+
+8. Shared shortcut
 On the source tab, press Alt+Shift+A on Windows/Linux or Option+Shift+A on macOS.
-Expected: the paper opens using saved preferences. The popup shows Chrome's assigned shortcut. For a shortcut conflict, use Edit or chrome://extensions/shortcuts to assign an available combination, then test it.
+Expected: the paper opens using the saved format, version, and tab preference. The popup displays Chrome's assigned shortcut; use Edit or chrome://extensions/shortcuts to resolve a conflicting assignment.
 
-7. Language and persistence
-Select 简体中文 under Language. Expected: the popup and existing page controls switch to Chinese. Reopen the popup; language and reading preferences persist. Select English to return to English. Follow browser uses Simplified Chinese for supported Simplified Chinese locales and English otherwise. Initial UI language is English even on a Chinese browser.
+9. Language and persistence
+Select 简体中文. The popup, existing page controls, copy menus, and right-click action use Chinese. Reopen the popup: preferences persist. Select English to restore English. Follow browser uses Simplified Chinese for supported Simplified Chinese locales and English otherwise. A fresh install starts in English even on a Chinese browser.
 
-8. Explicit and omitted versions
-Open https://www.alphaxiv.org/abs/1706.03762v7?utm_source=test#discussion and copy the link. Expected: https://arxiv.org/abs/1706.03762v7
-Open https://www.alphaxiv.org/abs/1706.03762 and copy again. Expected: https://arxiv.org/abs/1706.03762
-The copy results contain the paper identifier and optional version, with source query parameters and fragment removed.
+10. URL cleanup and source scope
+With Current version selected, copy from https://www.alphaxiv.org/abs/1706.03762v7?utm_source=test#discussion.
+Expected main Copy result: https://arxiv.org/abs/1706.03762v7
+On https://www.alphaxiv.org/abs/1706.03762, the result is https://arxiv.org/abs/1706.03762. Page controls are hidden on the alphaXiv home page. On https://example.org the popup waits for a paper and offers preferences. Supported paper links on other webpages still provide the context-menu action.
 
-9. Page scope
-On the alphaXiv home page, paper controls are hidden. On https://example.org the popup waits for a paper, open/copy actions are disabled, and preferences remain available. On arXiv abstract/PDF/HTML pages, the popup and shortcut support opening the chosen format; the popup also copies the abstract link.
+11. Finish
+Restore English, Abstract, Current version, and current-tab opening if desired. Refresh existing alphaXiv tabs after reloading or updating the extension. Updating an older installation retains its reading, tab, and language settings and adds Current version as the default version preference.
 
-10. Finish
-Restore English, Abstract, and current-tab preferences if desired. Refresh already-open alphaXiv tabs after reloading or updating the extension.
-
-Implementation notes for review
-chrome.storage.local saves preferences. The content script adds page controls on the two alphaXiv HTTPS hosts in the manifest. activeTab supplies the current URL for toolbar/shortcut actions; clipboardWrite supports clicking Copy. Executable resources are bundled in the package; paper navigation opens the selected arXiv URL.
+Implementation notes
+chrome.storage.local saves preferences. content_scripts.matches scopes page controls to the two alphaXiv HTTPS hosts. activeTab supplies the current URL for toolbar/shortcut actions. clipboardWrite writes a requested generated link. contextMenus supplies the explicitly chosen paper link's target URL. URLs and paper identifiers are processed locally in runtime memory; opening a paper performs ordinary HTTPS navigation to arxiv.org. Executable resources are bundled with the package.
