@@ -7,7 +7,7 @@ Default listing language
 English
 
 Version
-0.6.0
+0.7.0
 
 Short description (matches the extension manifest; 118 characters)
 Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut.
@@ -19,7 +19,12 @@ Go from an alphaXiv paper to its arXiv page in one click, or paste a paper link 
 Paste a paper from anywhere
 Enter a supported alphaXiv or arXiv URL, a modern identifier such as 1706.03762v3, a legacy identifier such as hep-th/9901001v2, or arXiv:1706.03762v3. The preview updates as you type. Opening an entered paper always uses a new tab, keeping your source page open. Clear the input to return to the current page. Entered text stays in memory while the popup is open and clears when it closes. Invalid input disables opening and copying until corrected or cleared.
 
-You can also paste one Markdown link, such as [Attention](https://arxiv.org/abs/1706.03762v3), or an angle-bracket link. The destination must be a supported paper or arXiv DOI URL. Paste an arXiv DOI as 10.48550/arXiv.1706.03762, with a doi: prefix, or as a doi.org / dx.doi.org URL. arXiv DOIs select the unversioned paper and are parsed locally without contacting a DOI service. Versioned DOIs, journal DOIs, multiple links, surrounding prose, and Markdown titles are not accepted.
+You can also paste one Markdown link, such as [Attention](https://arxiv.org/abs/1706.03762v3), or an angle-bracket link. The destination must be a supported paper or arXiv DOI URL. Paste an arXiv DOI as 10.48550/arXiv.1706.03762, with a doi: prefix, or as a doi.org / dx.doi.org URL. arXiv DOIs select the unversioned paper and are parsed locally without contacting a DOI service. Versioned DOIs, journal DOIs, multiple references in one input line, surrounding prose, and Markdown titles are not accepted.
+
+Batch organizer for paper lists
+Open Batch organizer from the popup to use a separate workspace. Paste one paper reference per nonblank line; URLs, identifiers, arXiv DOIs, inline Markdown links, and Markdown bullet or numbered lists are supported. Results show unique papers, duplicates with their first original line number, and invalid lines. Unique papers keep their first-occurrence order. Copy Markdown or download a .md file containing only unique valid papers, using arXiv identifier labels and abstract-page URLs. Invalid and duplicate rows remain visible but are excluded from export.
+
+Current version keeps different explicit versions and unversioned references separate. Latest version removes suffixes and merges versions of the same paper. The organizer starts with your saved version preference; changing it there leaves popup preferences unchanged. The input limit is 500 nonblank lines and 100,000 characters. Exceeding either limit rejects the whole batch and disables export. Parsing and deduplication run locally without network requests. Drafts clear when the workspace is closed or reloaded; copying and downloading are explicit actions.
 
 Choose how you read
 • Open the arXiv abstract page, PDF, or HTML (experimental).
@@ -44,8 +49,8 @@ English and Simplified Chinese
 The interface starts in English. Choose English, 简体中文, or Follow browser in the popup. The language choice also updates page controls and the right-click menu.
 
 Local preferences
-Reading format, version, tab behavior, and language are saved in your browser. Paper links and identifiers are processed locally, and opening a paper navigates directly to arXiv. Clipboard access writes a link only when you request a copy.
+Reading format, version, tab behavior, and language are saved in your browser. Paper links and identifiers are processed locally, and opening a paper navigates directly to arXiv. Clipboard access writes the requested paper link or Markdown list only when you request a copy. Batch downloads save a Markdown file only when requested; drafts are not stored.
 
 HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for paper readers.
 
-Version 0.6.0 adds smart paste for Markdown links, angle-bracket links, and arXiv DOIs. Keyboard focus stays on preference controls after saving, unless you move it elsewhere.
+Version 0.7.0 adds the separate batch organizer with duplicate detection, invalid-line marking, and Markdown list copy or download. The popup retains a single entry to the workspace.

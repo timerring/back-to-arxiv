@@ -1,4 +1,4 @@
-Back to arXiv 0.6.0 — reviewer test instructions
+Back to arXiv 0.7.0 — reviewer test instructions
 
 Access and purpose
 The extension opens and copies arXiv paper links from supported alphaXiv/arXiv pages, hyperlinks, and paper URLs or identifiers entered in the popup. Testing uses public paper pages and requires Chrome 120 or later.
@@ -67,11 +67,27 @@ With Current version selected, copy from https://www.alphaxiv.org/abs/1706.03762
 Expected main Copy result: https://arxiv.org/abs/1706.03762v7
 Pasting that URL in the popup produces the same result. On an unversioned source, copied URLs remain unversioned. Page controls are hidden on the alphaXiv home page. On https://example.org the popup accepts manual input and offers preferences. Supported paper links on other webpages still provide the context-menu action.
 
-14. Finish
+14. Batch organizer
+Open Batch organizer from the popup. Expect a separate extension tab; the popup remains a single-paper interface with one organizer entry. Paste this list, retaining the blank line:
+https://www.alphaxiv.org/abs/1706.03762v3
+- [Attention](https://arxiv.org/pdf/1706.03762v3.pdf)
+
+1. arXiv:1706.03762v2
+10.48550/arXiv.1706.03762
+not a paper
+hep-th/9901001v2
+
+With Current version, expect 4 unique papers, 1 duplicate (original line 2 points to line 1), and 1 invalid reference (original line 6). Empty line 3 is ignored without changing later line numbers. The unique order is 1706.03762v3, 1706.03762v2, 1706.03762, hep-th/9901001v2. With Latest version, expect 2 unique papers, 3 duplicates, and 1 invalid reference; versioned and unversioned references to the modern paper merge. Changing this select does not alter the saved popup version preference. Replacing the invalid line with a valid paper updates the result immediately.
+
+Copy Markdown and paste into a local text field. Download the .md file and compare its contents with the copy: both contain the unique valid papers only, each as - [arXiv:identifier](https://arxiv.org/abs/identifier), in first-occurrence order. Pasted labels are not used in output. Invalid and duplicate rows stay visible and are explicitly excluded. An all-invalid or empty list disables both export actions. A list with 501 nonblank references, or input over 100,000 characters, rejects the whole batch and disables export instead of silently truncating it. Blank lines do not count toward the 500-reference limit.
+
+Switch the saved language in the popup and check the open workbench follows it while retaining its input and chosen batch version. Clear resets the draft and results. Reload the organizer: its draft is empty and its starting version follows the saved preference. Close and reopen likewise clears the draft. The batch workspace does not fetch metadata or save drafts; no new permissions are requested.
+
+15. Finish
 Restore English, Abstract, Current version, and current-tab opening if desired. Refresh existing alphaXiv tabs after reloading or updating the extension. Upgrading retains existing preferences.
 
-Changes in 0.6.0
-Smart paste adds single Markdown/angle-bracket links and unversioned arXiv DOIs. Preference saving preserves keyboard focus. Existing URL-based paper refresh and stable localization remain in place.
+Changes in 0.7.0
+The independent batch organizer accepts paper-reference lists, marks duplicates and invalid lines, and exports unique valid papers as Markdown by copy or file download. The popup contains one entry to the workbench. Single-paper smart paste, keyboard focus handling, and URL-based paper refresh remain available.
 
 Implementation notes
-The permissions, site access, and stored preferences remain the same as version 0.5. chrome.storage.local saves format, version, tab, and language preferences. content_scripts.matches scopes page controls to the two alphaXiv HTTPS hosts. activeTab supplies the current URL for toolbar/shortcut actions. clipboardWrite writes a requested generated link. contextMenus supplies the explicitly chosen paper link's target URL. Paper references, including entered Markdown links and arXiv DOIs, are processed locally in runtime memory. Closing the popup clears its input; temporary formats apply only to the requested action. Markdown output uses a locally generated identifier label and abstract URL. DOI parsing makes no network request. Opening a paper performs ordinary HTTPS navigation to arxiv.org. Executable resources are bundled with the package.
+The permissions, site access, and stored preferences remain the same as version 0.6. chrome.storage.local saves format, version, tab, and language preferences. content_scripts.matches scopes page controls to the two alphaXiv HTTPS hosts. activeTab supplies the current URL for toolbar/shortcut actions. clipboardWrite writes a requested generated link. contextMenus supplies the explicitly chosen paper link's target URL. Paper references, including entered Markdown links and arXiv DOIs, are processed locally in runtime memory. Closing or reloading the popup or organizer clears its input; temporary formats apply only to the requested action. Batch version selection stays within the organizer and does not change saved preferences. Batch processing and export generation are local; copy and Markdown download are explicit actions. Markdown output uses a locally generated identifier label and abstract URL. DOI parsing makes no network request. Opening a paper performs ordinary HTTPS navigation to arxiv.org. Executable resources are bundled with the package.

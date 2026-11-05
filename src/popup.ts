@@ -319,6 +319,12 @@ element<HTMLButtonElement>('edit-shortcut').addEventListener('click', async () =
     window.close();
   } catch { showStatus('shortcutInstructions', 'error'); }
 });
+element<HTMLButtonElement>('batch-organizer').addEventListener('click', async () => {
+  try {
+    await chrome.tabs.create({ url: chrome.runtime.getURL('batch.html') });
+    window.close();
+  } catch { showStatus('batchOpenFailed', 'error'); }
+});
 chrome.tabs.onUpdated.addListener((tabId, _changeInfo, tab) => {
   if (tabId === activeTabId) updateTab(tab);
 });

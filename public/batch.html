@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title data-i18n="batchPageTitle">Batch organizer · Back to arXiv</title>
+    <link rel="stylesheet" href="batch.css" />
+    <script src="batch.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header class="page-header">
+        <div class="brand"><img src="icons/icon-48.png" width="32" height="32" alt="" /><span>Back to arXiv</span></div>
+        <span class="local-note" data-i18n="batchLocalNote">Processed locally · No draft saved</span>
+      </header>
+
+      <section class="intro" aria-labelledby="batch-heading">
+        <p class="eyebrow" data-i18n="batchEyebrow">Your next reading list</p>
+        <h1 id="batch-heading" data-i18n="batchOrganizer">Batch organizer</h1>
+        <p class="intro-copy" data-i18n="batchIntro">Turn a handful of paper references into a clean Markdown list.</p>
+      </section>
+
+      <div class="workspace">
+        <section class="input-panel panel" aria-labelledby="batch-input-label">
+          <div class="panel-heading">
+            <label id="batch-input-label" for="batch-input" data-i18n="batchInputLabel">Paste your references</label>
+            <button id="batch-example" class="text-button" type="button" data-i18n="batchExample">Try an example</button>
+          </div>
+          <p id="batch-input-help" class="help" data-i18n="batchInputHelp">One reference per line: paper links, arXiv IDs, arXiv DOIs, or Markdown links. Bulleted and numbered lists work too.</p>
+          <textarea id="batch-input" rows="12" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="batch-input-help batch-limits batch-status" aria-invalid="false"></textarea>
+          <div class="input-footer"><p id="batch-limits" class="help"></p><button id="batch-clear" class="text-button" type="button" data-i18n="batchClear" disabled>Clear</button></div>
+
+          <div class="version-control">
+            <label for="batch-version" data-i18n="batchVersionLabel">Deduplication & version</label>
+            <select id="batch-version" aria-describedby="batch-version-note" disabled>
+              <option value="current" data-i18n="versionCurrent">Current version</option>
+              <option value="latest" data-i18n="versionLatest">Latest version</option>
+            </select>
+          </div>
+          <p id="batch-version-note" class="help version-note"></p>
+        </section>
+
+        <section class="results-panel panel" aria-labelledby="batch-results-heading">
+          <div class="panel-heading"><h2 id="batch-results-heading" data-i18n="batchResultsHeading">Review & export</h2><span class="live-label" data-i18n="batchLive">Updates as you type</span></div>
+          <div class="counts" aria-label="Reference summary" data-i18n-aria-label="batchSummaryLabel">
+            <div><strong id="batch-unique-count">0</strong><span data-i18n="batchUniqueLabel">Ready to export</span></div>
+            <div><strong id="batch-duplicate-count">0</strong><span data-i18n="batchDuplicateLabel">Duplicates</span></div>
+            <div><strong id="batch-invalid-count">0</strong><span data-i18n="batchInvalidLabel">Need attention</span></div>
+          </div>
+          <p id="batch-export-note" class="help" data-i18n="batchExportNote">Export includes unique, valid references in their original order. Duplicates and invalid lines are excluded.</p>
+          <div class="export-actions">
+            <button id="batch-copy" class="button primary" type="button" disabled data-i18n="batchCopy">Copy Markdown</button>
+            <button id="batch-download" class="button secondary" type="button" disabled data-i18n="batchDownload">Download .md</button>
+          </div>
+          <p id="batch-status" class="status" role="status" aria-live="polite" aria-atomic="true"></p>
+
+          <div id="batch-empty" class="empty-state"><span aria-hidden="true">↗</span><p data-i18n="batchEmpty">Your list starts here.</p><small data-i18n="batchEmptyDetail">Paste references to see valid papers, duplicates, and lines to fix.</small></div>
+          <ol id="batch-results" class="results" aria-label="Reference results" data-i18n-aria-label="batchResultsLabel"></ol>
+
+          <details id="batch-preview" class="markdown-preview" hidden>
+            <summary data-i18n="batchPreview">Preview Markdown</summary>
+            <label class="sr-only" for="batch-markdown" data-i18n="batchMarkdownLabel">Markdown export preview</label>
+            <textarea id="batch-markdown" rows="5" readonly spellcheck="false"></textarea>
+          </details>
+        </section>
+      </div>
+      <footer class="page-footer" data-i18n="batchFooter">References stay in this tab and clear when it closes. Exported links always point to arXiv abstract pages.</footer>
+    </main>
+  </body>
+</html>

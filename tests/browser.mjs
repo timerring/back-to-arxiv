@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { runBatchChecks } from './batch-browser.mjs';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const extensionPath = join(root, 'dist');
@@ -101,6 +102,7 @@ try {
     channel: 'chromium',
     executablePath: process.env.CHROMIUM_EXECUTABLE_PATH,
     headless: true,
+    acceptDownloads: true,
     viewport: { width: 1280, height: 800 },
     ignoreDefaultArgs: ['--disable-extensions'],
     args: ['--enable-unsafe-extension-debugging', ...(loadViaCdp ? [] : [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`])],
@@ -568,6 +570,7 @@ try {
   await doiPaper.close();
   if (popup.isClosed() === false) await popup.close();
   assert.equal(paper.url(), 'https://example.org/');
+  await runBatchChecks({ context, worker, extensionId, paper, openPopup, assertPopupFits, output, en, zh, readClipboard });
   assert.deepEqual(browserErrors, []);
   console.log('PASS: from unrelated pages, links/IDs/DOIs/Markdown support preview, copy and real new-tab navigation; invalid references stay disabled, input stays in memory and both languages fit Chrome.');
   console.log(`Browser integration passed. Screenshots: ${output}`);

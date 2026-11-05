@@ -92,7 +92,8 @@ test('manifest and markup localization references exist in the English fallback 
     assert.ok(en[key!], `Missing manifest message: ${key}`);
   }
   const sourceFiles = readdirSync(new URL('../src/', import.meta.url)).filter((file) => file.endsWith('.ts'));
-  for (const file of ['public/popup.html', ...sourceFiles.map((file) => `src/${file}`)]) {
+  const markupFiles = readdirSync(new URL('../public/', import.meta.url)).filter((file) => file.endsWith('.html'));
+  for (const file of [...markupFiles.map((file) => `public/${file}`), ...sourceFiles.map((file) => `src/${file}`)]) {
     const source = readProject(file);
     for (const [, key] of source.matchAll(/data-i18n(?:-title|-aria-label)?=["']([A-Za-z0-9_]+)["']/g)) {
       assert.ok(en[key!], `Missing markup message ${key} in ${file}`);

@@ -12,7 +12,12 @@ await cp(join(root, 'public'), outdir, { recursive: true });
 await generateIcons(join(outdir, 'icons'));
 await build({
   absWorkingDir: root,
-  entryPoints: ['src/background.ts', 'src/content.ts', 'src/popup.ts'],
+  entryPoints: {
+    background: 'src/background.ts',
+    content: 'src/content.ts',
+    popup: 'src/popup.ts',
+    batch: 'src/batch-page.ts',
+  },
   bundle: true,
   outdir,
   format: 'iife',

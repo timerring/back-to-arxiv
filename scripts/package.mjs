@@ -44,11 +44,12 @@ for (const field of ['name', 'description', 'version']) {
 }
 
 const files = await listFiles(dist);
-const allowedAsset = /^(?:manifest\.json|(?:background|content|popup)\.js|popup\.(?:html|css)|_locales\/[A-Za-z_]+\/messages\.json|icons\/icon-\d+\.png)$/;
+const allowedAsset = /^(?:manifest\.json|(?:background|content|popup|batch)\.js|(?:popup|batch)\.(?:html|css)|_locales\/[A-Za-z_]+\/messages\.json|icons\/icon-\d+\.png)$/;
 for (const file of files) assert.match(file, allowedAsset, `Unexpected build artifact: ${file}`);
 const requireAsset = (file) => assert.ok(files.includes(file), `Missing extension asset: ${file}`);
 requireAsset('popup.css');
 requireAsset('popup.js');
+for (const file of ['batch.html', 'batch.css', 'batch.js']) requireAsset(file);
 requireAsset(`_locales/${manifest.default_locale}/messages.json`);
 requireAsset(manifest.action?.default_popup);
 requireAsset(manifest.background?.service_worker);
