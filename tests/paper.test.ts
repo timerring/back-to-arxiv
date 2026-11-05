@@ -172,7 +172,7 @@ test('explicit input accepts paper URLs, modern and legacy identifiers, and arXi
 test('explicit input requires a single complete trusted paper reference', () => {
   for (const input of ['', ' ', 'arXiv:', '1706.03762v0', '1706.03762v03', '1713.03762',
     'Read arXiv:1706.03762', '1706.03762 2401.12345', '1706.03762\n2401.12345',
-    '[paper](https://arxiv.org/abs/1706.03762)', 'https://arxiv.org.evil.example/abs/1706.03762',
+    'https://arxiv.org.evil.example/abs/1706.03762',
     'https://user:password@arxiv.org/abs/1706.03762', 'https://arxiv.org:8443/abs/1706.03762',
     'javascript:alert(1)', 'https://example.org/?paper=1706.03762',
     `https://arxiv.org/abs/1706.03762?tracking=${'a'.repeat(4096)}`]) {
@@ -190,4 +190,85 @@ test('Markdown links consistently label the selected version and use the abstrac
     assert.equal(paper.id, id);
   }
   assert.throws(() => buildMarkdownLink({ id: 'x](javascript:alert(1))', source: 'arxiv' }), TypeError);
+});
+
+test('single Markdown links and autolinks use the trusted destination rather than their labels', () => {
+  for (const id of ['1706.03762v3', '0706.0001', 'hep-th/9901001v2', 'math.GT/0309136']) {
+    for (const destination of [`https://arxiv.org/abs/${id}`, `https://arxiv.org/pdf/${id}.pdf?utm_source=notes#page=2`]) {
+      for (const input of [`[A paper](${destination})`, `[arXiv:2401.12345](${destination})`, `[A \\[paper\\]](<${destination}>)`, `<${destination}>`]) {
+        assert.deepEqual(parsePaperInput(input), { id, source: 'arxiv' }, input);
+      }
+    }
+    assert.deepEqual(parsePaperInput(` [论文](https://www.alphaxiv.org/overview/${id}) `), { id, source: 'alphaxiv' });
+  }
+  assert.deepEqual(parsePaperInput('[](https://arxiv.org/abs/1706.03762)'), { id: '1706.03762', source: 'arxiv' });
+});
+
+test('generated Markdown can be pasted back with its selected version intact', () => {
+  for (const id of ['1706.03762v3', 'hep-th/9901001v2', 'math.GT/0309136']) {
+    const paper = parsePaperInput(id)!;
+    for (const version of ['current', 'latest'] as const) {
+      assert.deepEqual(parsePaperInput(buildMarkdownLink(paper, version)), { id: getPaperId(paper, version), source: 'arxiv' });
+    }
+  }
+});
+
+test('inline links reject untrusted destinations, extra references and unsupported Markdown syntax', () => {
+  for (const input of [
+    '[arXiv:1706.03762](https://example.com/abs/1706.03762)',
+    '[https://arxiv.org/abs/1706.03762](https://arxiv.org.evil.example/abs/1706.03762)',
+    '[paper](https://user:password@arxiv.org/abs/1706.03762)',
+    '[paper](https://arxiv.org:8443/abs/1706.03762)',
+    '[paper](javascript:alert(1))', '[paper](1706.03762)', '[paper](arXiv:1706.03762)',
+    '[paper](10.48550/arXiv.1706.03762)', '<1706.03762>', '<doi:10.48550/arXiv.1706.03762>',
+    '[paper](https://arxiv.org/abs/1706.03762v0)', '[paper](https://arxiv.org/abs/%E0%A4%A)',
+    '[paper](https://arxiv.org/abs/1706.03762) trailing', 'Read [paper](https://arxiv.org/abs/1706.03762)',
+    '[one](https://arxiv.org/abs/1706.03762) [two](https://arxiv.org/abs/2401.12345)',
+    '<https://arxiv.org/abs/1706.03762>\n<https://arxiv.org/abs/2401.12345>',
+    '[paper](https://arxiv.org/abs/1706.03762 "title")',
+    '[[paper]](https://arxiv.org/abs/1706.03762)', '[paper]([nested](https://arxiv.org/abs/1706.03762))',
+    '<<https://arxiv.org/abs/1706.03762>>', '<[paper](https://arxiv.org/abs/1706.03762)>',
+    '[paper](<https://arxiv.org/abs/1706.03762> extra)',
+    `[${'a'.repeat(4096)}](https://arxiv.org/abs/1706.03762)`,
+  ]) assert.equal(parsePaperInput(input), null, input.slice(0, 120));
+});
+
+test('arXiv DOI names and trusted resolver URLs map to canonical unversioned papers', () => {
+  for (const [doiId, id] of [
+    ['1706.03762', '1706.03762'], ['0706.0001', '0706.0001'],
+    ['HEP-TH/9901001', 'hep-th/9901001'], ['MATH.gt/0309136', 'math.GT/0309136'],
+  ]) {
+    for (const name of [`10.48550/arXiv.${doiId}`, `10.48550/ARXIV.${doiId}`]) {
+      for (const input of [name, `doi:${name}`, `DOI: ${name}`, ` https://doi.org/${name} `,
+        `http://dx.doi.org/${name}?utm_source=notes#reference`,
+        `[paper](https://doi.org/${name})`, `<https://doi.org/${name}>`]) {
+        const paper = parsePaperInput(input);
+        assert.deepEqual(paper, { id, source: 'arxiv' }, input);
+        assert.equal(buildArxivUrl(paper!, 'abs', 'current'), `https://arxiv.org/abs/${id}`);
+      }
+    }
+  }
+  assert.deepEqual(parsePaperInput('https://doi.org/10.48550/arXiv.math.gt%2F0309136'), { id: 'math.GT/0309136', source: 'arxiv' });
+});
+
+test('DOI input rejects synthetic versions, other namespaces, hostile resolvers and malformed names', () => {
+  for (const name of ['10.48550/arXiv.1706.03762v3', '10.48550/arXiv.1706.03762V3',
+    '10.48550/arXiv.hep-th/9901001v2', '10.48550/arXiv.math.GT/0309136V2',
+    '10.48550/arXiv.1713.03762', '10.48550/arXiv.1706.03762/', '10.12345/arXiv.1706.03762',
+    '10.48550/other.1706.03762', '10.48550/arXiv.1706.03762 2401.12345']) {
+    for (const input of [name, `doi:${name}`, `https://doi.org/${name}`, `[paper](https://doi.org/${name})`]) {
+      assert.equal(parsePaperInput(input), null, input);
+    }
+  }
+  for (const input of [
+    'https://doi.org.evil.example/10.48550/arXiv.1706.03762',
+    'https://evil.example/10.48550/arXiv.1706.03762',
+    'https://user:password@doi.org/10.48550/arXiv.1706.03762',
+    'https://doi.org:8443/10.48550/arXiv.1706.03762',
+    'ftp://doi.org/10.48550/arXiv.1706.03762', 'https:doi.org/10.48550/arXiv.1706.03762',
+    'https://doi.org/10.48550/arXiv.hep-th%252F9901001',
+    'https://doi.org/10.48550/arXiv.%E0%A4%A',
+    'https://doi.org/?doi=10.48550/arXiv.1706.03762',
+    '10.48550/arXiv.1706.03762\n10.48550/arXiv.2401.12345',
+  ]) assert.equal(parsePaperInput(input), null, input);
 });

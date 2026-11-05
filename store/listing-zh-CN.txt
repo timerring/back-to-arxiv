@@ -7,7 +7,7 @@ Back to arXiv
 简体中文（商店默认介绍使用英文）
 
 版本
-0.5.1
+0.6.0
 
 简短描述（与扩展清单一致，共 59 个字符）
 从 alphaXiv 一键回到 arXiv 原文，保留论文版本，支持摘要、PDF、实验性 HTML、复制链接和快捷键。
@@ -18,6 +18,8 @@ Back to arXiv
 
 从任意网页粘贴论文
 输入受支持的 alphaXiv 或 arXiv 网址、1706.03762v3 等现代编号、hep-th/9901001v2 等旧式编号，也可使用 arXiv:1706.03762v3。预览随输入即时更新。手动输入的论文始终在新标签页打开，保留来源页面；清空输入即可返回当前页面。输入仅在面板打开期间保留于内存，关闭后清空。无效输入会禁用打开与复制操作，修正或清空后恢复。
+
+也可粘贴单个 Markdown 链接，如 [Attention](https://arxiv.org/abs/1706.03762v3)，或尖括号链接。目标必须是受支持的论文网址或 arXiv DOI 网址。arXiv DOI 支持 10.48550/arXiv.1706.03762、doi: 前缀及 doi.org / dx.doi.org 网址，在本地解析并生成省略版本号的论文地址，不访问 DOI 服务。不接受带版本号的 DOI、期刊 DOI、多个链接、附带说明文字或 Markdown 可选标题。
 
 选择阅读方式
 • 打开 arXiv 摘要页、PDF 或 HTML（实验性）。
@@ -46,4 +48,4 @@ Windows/Linux 默认快捷键为 Alt+Shift+A，macOS 为 Option+Shift+A。可在
 
 HTML 支持范围取决于 arXiv 的论文和版本，可按需选择摘要页或 PDF。Back to arXiv 是面向论文阅读场景的独立工具。
 
-0.5.1 改善面板稳定性与渲染效率。
+0.6.0 新增 Markdown 链接、尖括号链接和 arXiv DOI 智能粘贴；保存偏好后保留键盘焦点，主动移焦时不抢回焦点。

@@ -1,4 +1,4 @@
-Back to arXiv 0.5.1 — reviewer test instructions
+Back to arXiv 0.6.0 — reviewer test instructions
 
 Access and purpose
 The extension opens and copies arXiv paper links from supported alphaXiv/arXiv pages, hyperlinks, and paper URLs or identifiers entered in the popup. Testing uses public paper pages and requires Chrome 120 or later.
@@ -19,8 +19,12 @@ Keep the saved reading format at Abstract and the version at Current version. Op
 4. Manual paper input from another webpage
 Open https://example.org and invoke the popup. Enter 1706.03762v3. Expect an immediate preview of https://arxiv.org/abs/1706.03762v3. Click Open: the paper opens in a new tab and example.org stays open, including while Open in a new tab is off. From the source tab, reopen the popup: the input is empty. Repeat input with arXiv:1706.03762v3, hep-th/9901001v2, https://www.alphaxiv.org/overview/1706.03762v3, and https://arxiv.org/pdf/1706.03762v3.pdf. Leading/trailing spaces are trimmed. Each input selects one paper; preview and copy use that paper. A temporary opening format for manual input also opens in a new tab and leaves the saved reading format unchanged.
 
+Smart-paste cases: enter [Attention](https://arxiv.org/abs/1706.03762v3), [Attention](<https://arxiv.org/abs/1706.03762v3>), and <https://arxiv.org/abs/1706.03762v3> separately. Each selects 1706.03762v3; copy generates the clean paper URL and ignores the pasted label. Repeat with 10.48550/arXiv.1706.03762, doi:10.48550/arXiv.1706.03762, https://doi.org/10.48550/arXiv.1706.03762, and https://dx.doi.org/10.48550/arXiv.1706.03762. Each selects unversioned 1706.03762 with both Current version and Latest version. These DOIs identify the latest version; parsing does not contact a DOI resolver. A Markdown link whose destination is one of these DOI URLs is also accepted.
+
 5. Input priority and validation
 Return to https://www.alphaxiv.org/abs/1706.03762v7. Enter hep-th/9901001v2 in the popup: preview and actions target the entered paper. Replace it with invalid text such as example: all open and copy actions are disabled. Clear the field: preview and actions return to the current page's 1706.03762v7. Close and reopen the popup after entering a valid paper: input is empty and preview follows the current page again.
+
+Also reject: Read [paper](https://arxiv.org/abs/1706.03762), two Markdown links, [paper](https://arxiv.org/abs/1706.03762 "title"), a journal DOI such as 10.1038/example, and 10.48550/arXiv.1706.03762v3. The extension accepts one complete supported reference, not a paragraph or a versioned DOI.
 
 6. Main Copy and copy-format menus
 Click Copy on the page and Copy original link in the popup; paste each result into a local text field.
@@ -56,6 +60,8 @@ Expected: the paper opens using the saved format, version, and tab preference. T
 12. Language and persistence
 Select 简体中文. The popup, page controls, input guidance, Open/Copy menus, and right-click action use Chinese. Reopen the popup: preferences persist and paper input is empty. Select English to restore English. Follow browser uses Simplified Chinese for supported Simplified Chinese locales and English otherwise. A fresh install starts in English even on a Chinese browser.
 
+Keyboard focus: focus Abstract and press the right arrow to select PDF. After saving, focus stays on PDF; press the right arrow again to select HTML. Changing the version or language with the keyboard likewise preserves focus after saving. If you intentionally focus the paper-input field or another control while a save is pending, focus stays where you moved it. Saving failures also reenable the preference and preserve focus when it has not moved elsewhere.
+
 13. URL cleanup and source scope
 With Current version selected, copy from https://www.alphaxiv.org/abs/1706.03762v7?utm_source=test#discussion.
 Expected main Copy result: https://arxiv.org/abs/1706.03762v7
@@ -64,8 +70,8 @@ Pasting that URL in the popup produces the same result. On an unversioned source
 14. Finish
 Restore English, Abstract, Current version, and current-tab opening if desired. Refresh existing alphaXiv tabs after reloading or updating the extension. Upgrading retains existing preferences.
 
-Stability update in 0.5.1
-Paper state updates follow the effective page URL. Existing translations remain in place during repeated rendering. This resolves a repeated-rendering path when the popup document is opened as a standalone tab. The reading and copy workflows above retain their behavior.
+Changes in 0.6.0
+Smart paste adds single Markdown/angle-bracket links and unversioned arXiv DOIs. Preference saving preserves keyboard focus. Existing URL-based paper refresh and stable localization remain in place.
 
 Implementation notes
-The permissions and site access remain the same as version 0.4. chrome.storage.local saves format, version, tab, and language preferences. content_scripts.matches scopes page controls to the two alphaXiv HTTPS hosts. activeTab supplies the current URL for toolbar/shortcut actions. clipboardWrite writes a requested generated link. contextMenus supplies the explicitly chosen paper link's target URL. Paper URLs and identifiers, including entered input, are processed locally in runtime memory. Closing the popup clears its input; temporary formats apply only to the requested action. Markdown uses a locally generated identifier label and abstract URL. Opening a paper performs ordinary HTTPS navigation to arxiv.org. Executable resources are bundled with the package.
+The permissions, site access, and stored preferences remain the same as version 0.5. chrome.storage.local saves format, version, tab, and language preferences. content_scripts.matches scopes page controls to the two alphaXiv HTTPS hosts. activeTab supplies the current URL for toolbar/shortcut actions. clipboardWrite writes a requested generated link. contextMenus supplies the explicitly chosen paper link's target URL. Paper references, including entered Markdown links and arXiv DOIs, are processed locally in runtime memory. Closing the popup clears its input; temporary formats apply only to the requested action. Markdown output uses a locally generated identifier label and abstract URL. DOI parsing makes no network request. Opening a paper performs ordinary HTTPS navigation to arxiv.org. Executable resources are bundled with the package.

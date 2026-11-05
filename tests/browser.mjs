@@ -194,8 +194,18 @@ try {
     delete window.__paperMutationCount;
     delete window.__sourceTitleObserved;
   });
-  await popup.locator('#format-pdf').check();
+  await popup.locator('#format-abs').focus();
+  await popup.locator('#format-abs').press('ArrowRight');
+  await popup.waitForFunction(() => document.getElementById('format-pdf')?.checked && document.getElementById('format-fieldset')?.disabled === false);
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'format-pdf');
+  await popup.locator('#format-pdf').press('ArrowRight');
+  await popup.waitForFunction(() => document.getElementById('format-html')?.checked && document.getElementById('format-fieldset')?.disabled === false);
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'format-html');
+  await popup.locator('#format-html').press('ArrowLeft');
   await popup.waitForFunction((message) => document.getElementById('status')?.textContent === message, en.savedPreferences.message);
+  assert.equal(await popup.locator('#format-pdf').isChecked(), true);
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'format-pdf');
+  console.log('PASS: consecutive keyboard format changes keep focus after preferences save.');
   await popup.locator('#new-tab').check();
   await popup.waitForFunction((message) => document.getElementById('status')?.textContent === message, en.savedPreferences.message);
   await waitForLink(paper, 'https://arxiv.org/pdf/1706.03762v3');
@@ -211,8 +221,10 @@ try {
   popup = await openPopup(context, paper, extensionId);
   await popup.waitForFunction(() => document.getElementById('format-html')?.checked === true);
   assert.equal(await popup.locator('#html-note').isVisible(), true);
+  await popup.locator('#language').focus();
   await popup.locator('#language').selectOption('zh_CN');
   await popup.waitForFunction((message) => document.getElementById('status')?.textContent === message, zh.savedPreferences.message);
+  assert.equal(await popup.evaluate(() => document.activeElement?.id), 'language');
   await paper.getByRole('link', { name: zh.openArxiv.message, exact: true }).waitFor();
   assert.equal(await popup.locator('html').getAttribute('lang'), 'zh-CN');
   assert.equal(await popup.locator('#open-paper').innerText(), zh.openArxiv.message);
@@ -486,10 +498,27 @@ try {
   await popup.locator('#paper-input').fill('invalid paper reference');
   await assertPopupFits(popup);
   assert.equal(await popup.locator('#status').innerText(), en.invalidPaperInput.message);
+  for (const input of [
+    '[arXiv:1706.03762](https://arxiv.org.evil.example/abs/1706.03762)',
+    '[1706.03762](javascript:alert(1))',
+    'https://doi.org/10.1000/arXiv.1706.03762',
+    '10.48550/arXiv.1706.03762v3',
+    '[one](https://arxiv.org/abs/1706.03762) [two](https://arxiv.org/abs/2301.12345)',
+  ]) {
+    await popup.locator('#paper-input').fill(input);
+    for (const id of ['open-paper', 'open-menu-toggle', 'copy-link', 'copy-menu-toggle']) assert.equal(await popup.locator(`#${id}`).isDisabled(), true);
+    assert.equal(await popup.locator('#paper-input').getAttribute('aria-invalid'), 'true');
+  }
   for (const [input, id] of [
     ['  https://www.alphaxiv.org/overview/1706.03762v3?source=share  ', '1706.03762v3'],
     ['https://arxiv.org/pdf/2301.12345v2.pdf', '2301.12345v2'],
     ['arXiv: 1706.03762v3', '1706.03762v3'],
+    ['[Attention Is All You Need](https://arxiv.org/abs/1706.03762v3?utm_source=notes)', '1706.03762v3'],
+    ['<https://www.alphaxiv.org/overview/2301.12345v2>', '2301.12345v2'],
+    ['10.48550/arXiv.1706.03762', '1706.03762'],
+    ['doi:10.48550/arXiv.2301.12345', '2301.12345'],
+    ['[DOI citation](https://doi.org/10.48550/arXiv.1706.03762)', '1706.03762'],
+    ['https://dx.doi.org/10.48550/arXiv.math.gt/0309136', 'math.GT/0309136'],
     ['hep-th/9901001v2', 'hep-th/9901001v2'],
   ]) {
     await popup.bringToFront();
@@ -523,7 +552,7 @@ try {
   assert.deepEqual(await worker.evaluate(async () => chrome.storage.local.get()), { preferences: { format: 'html', openInNewTab: false, version: 'latest', language: 'en' } });
   popup = await openPopup(context, paper, extensionId);
   assert.equal(await popup.locator('#paper-input').inputValue(), '');
-  await popup.locator('#paper-input').fill('arXiv:1706.03762v3');
+  await popup.locator('#paper-input').fill('[arXiv:1706.03762v3](https://arxiv.org/abs/1706.03762v3)');
   await popup.locator('h1').click();
   await popup.locator('body').screenshot({ path: join(output, 'popup-input.png') });
   const [manualDefault] = await Promise.all([context.waitForEvent('page'), popup.locator('#paper-input').press('Enter')]);
@@ -532,8 +561,15 @@ try {
   if (popup.isClosed() === false) await popup.close();
   assert.equal(paper.url(), 'https://example.org/');
   assert.equal(await paper.locator('#back-to-arxiv-root').count(), 0);
+  popup = await openPopup(context, paper, extensionId);
+  await popup.locator('#paper-input').fill('https://doi.org/10.48550/arXiv.2301.12345');
+  const [doiPaper] = await Promise.all([context.waitForEvent('page'), popup.locator('#paper-input').press('Enter')]);
+  await doiPaper.waitForURL('https://arxiv.org/html/2301.12345', { waitUntil: 'commit' });
+  await doiPaper.close();
+  if (popup.isClosed() === false) await popup.close();
+  assert.equal(paper.url(), 'https://example.org/');
   assert.deepEqual(browserErrors, []);
-  console.log('PASS: from unrelated pages, links/IDs support preview, Markdown, version choice, temporary/default opening in new tabs; input stays in memory and both languages fit Chrome.');
+  console.log('PASS: from unrelated pages, links/IDs/DOIs/Markdown support preview, copy and real new-tab navigation; invalid references stay disabled, input stays in memory and both languages fit Chrome.');
   console.log(`Browser integration passed. Screenshots: ${output}`);
 } catch (error) {
   const popup = context?.pages().find((page) => page.url().startsWith('chrome-extension://') && page.url().endsWith('/popup.html'));

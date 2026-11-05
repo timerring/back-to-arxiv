@@ -63,12 +63,50 @@ export function parsePaperUrl(value: string): Paper | null {
   return PAPER_ID.test(id) ? { id, source } : null;
 }
 
-/** Accept one explicitly entered paper URL or identifier. */
+/** Resolve only arXiv's DOI namespace, whose identifiers refer to the latest version. */
+function parseArxivDoiName(value: string): Paper | null {
+  const match = /^10\.48550\/arxiv\.(.+)$/i.exec(value);
+  if (match === null) return null;
+  // DOI names are case-insensitive; restore arXiv's historical archive/class casing.
+  const id = match[1]!.replace(/^([a-z][a-z-]*)(?:\.([a-z]{2}))?\//i,
+    (_match, archive: string, category: string | undefined) => `${archive.toLowerCase()}${category ? `.${category.toUpperCase()}` : ''}/`);
+  if (PAPER_ID.test(id) === false || /v\d+$/i.test(id)) return null;
+  return { id, source: 'arxiv' };
+}
+
+/** Wrapper destinations must be complete trusted URLs, never relative IDs or DOI names. */
+function parsePaperReferenceUrl(value: string): Paper | null {
+  const paper = parsePaperUrl(value);
+  if (paper !== null) return paper;
+  if (/^https?:\/\//i.test(value) === false) return null;
+  let url: URL;
+  let pathname: string;
+  try {
+    url = new URL(value);
+    pathname = decodeURIComponent(url.pathname);
+  } catch {
+    return null;
+  }
+  if (
+    (url.hostname !== 'doi.org' && url.hostname !== 'dx.doi.org') ||
+    (url.protocol !== 'https:' && url.protocol !== 'http:') ||
+    url.username.length > 0 || url.password.length > 0 || url.port.length > 0
+  ) return null;
+  return parseArxivDoiName(pathname.slice(1));
+}
+
+/** Accept one complete paper URL, identifier, DOI, or simple inline link. */
 export function parsePaperInput(value: string): Paper | null {
   if (typeof value !== 'string') return null;
   const input = value.trim();
   if (input.length === 0 || input.length > 4096) return null;
-  const paper = parsePaperUrl(input);
+  // A small, deliberate Markdown subset: one label and one URL, without titles or nested links.
+  // Labels are ignored; the destination alone determines the paper.
+  const markdown = /^\[(?:\\[^\r\n]|[^\[\]\\\r\n])*\]\((?:<([^<>\s]+)>|([^<>()\s]+))\)$/.exec(input);
+  const autolink = /^<([^<>\s]+)>$/.exec(input);
+  const destination = markdown?.[1] ?? markdown?.[2] ?? autolink?.[1];
+  if (destination !== undefined) return parsePaperReferenceUrl(destination);
+  const paper = parsePaperReferenceUrl(input) ?? parseArxivDoiName(input.replace(/^doi:[ \t]*/i, ''));
   if (paper !== null) return paper;
   const id = input.replace(/^arxiv:\s*/i, '');
   return PAPER_ID.test(id) ? { id, source: 'arxiv' } : null;

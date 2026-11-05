@@ -153,11 +153,17 @@ function updateTab(tab: chrome.tabs.Tab): void {
 
 async function persistPreferences(patch: Partial<Preferences>): Promise<void> {
   if (preferences === null || saving) return;
+  const focusedControl = [...formatRadios, newTabCheckbox, languageSelect, versionSelect]
+    .find((control) => control === document.activeElement);
+  let focusMoved = false;
+  const trackFocus = (): void => { focusMoved = true; };
   const previous = preferences;
   preferences = { ...preferences, ...patch };
   saving = true;
   showStatus('savingPreferences');
   renderControls();
+  // Disabling the setting can blur it. Preserve later, intentional focus changes.
+  document.addEventListener('focusin', trackFocus);
   const operation = saveQueue.then(() => savePreferences(patch));
   saveQueue = operation.catch(() => undefined);
   try {
@@ -167,8 +173,14 @@ async function persistPreferences(patch: Partial<Preferences>): Promise<void> {
     preferences = previous;
     showStatus('saveFailed', 'error');
   } finally {
+    document.removeEventListener('focusin', trackFocus);
     saving = false;
     renderControls();
+    if (focusedControl && focusMoved === false && focusedControl.isConnected
+      && focusedControl.matches(':disabled') === false
+      && (document.activeElement === document.body || document.activeElement === focusedControl)) {
+      focusedControl.focus();
+    }
   }
 }
 

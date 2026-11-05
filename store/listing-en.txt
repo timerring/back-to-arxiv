@@ -7,7 +7,7 @@ Default listing language
 English
 
 Version
-0.5.1
+0.6.0
 
 Short description (matches the extension manifest; 118 characters)
 Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut.
@@ -18,6 +18,8 @@ Go from an alphaXiv paper to its arXiv page in one click, or paste a paper link 
 
 Paste a paper from anywhere
 Enter a supported alphaXiv or arXiv URL, a modern identifier such as 1706.03762v3, a legacy identifier such as hep-th/9901001v2, or arXiv:1706.03762v3. The preview updates as you type. Opening an entered paper always uses a new tab, keeping your source page open. Clear the input to return to the current page. Entered text stays in memory while the popup is open and clears when it closes. Invalid input disables opening and copying until corrected or cleared.
+
+You can also paste one Markdown link, such as [Attention](https://arxiv.org/abs/1706.03762v3), or an angle-bracket link. The destination must be a supported paper or arXiv DOI URL. Paste an arXiv DOI as 10.48550/arXiv.1706.03762, with a doi: prefix, or as a doi.org / dx.doi.org URL. arXiv DOIs select the unversioned paper and are parsed locally without contacting a DOI service. Versioned DOIs, journal DOIs, multiple links, surrounding prose, and Markdown titles are not accepted.
 
 Choose how you read
 • Open the arXiv abstract page, PDF, or HTML (experimental).
@@ -46,4 +48,4 @@ Reading format, version, tab behavior, and language are saved in your browser. P
 
 HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for paper readers.
 
-Version 0.5.1 improves popup stability and rendering efficiency.
+Version 0.6.0 adds smart paste for Markdown links, angle-bracket links, and arXiv DOIs. Keyboard focus stays on preference controls after saving, unless you move it elsewhere.

@@ -24,11 +24,12 @@
       </header>
 
       <section class="paper-card" aria-labelledby="paper-label">
-        <label class="sr-only" for="paper-input" data-i18n="paperInputLabel">Paste a link or arXiv ID</label>
+        <label class="sr-only" for="paper-input" data-i18n="paperInputLabel">Paste a paper link, arXiv ID, DOI or Markdown link</label>
         <div class="paper-input-row">
-          <input id="paper-input" type="text" placeholder="Link or arXiv:1706.03762v3" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-describedby="status" aria-invalid="false" />
+          <input id="paper-input" type="text" placeholder="Link, arXiv ID, DOI or Markdown" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-describedby="paper-input-help status" aria-invalid="false" data-i18n-title="paperInputHelp" />
           <button id="use-current-page" type="button" data-i18n="useCurrentPage" hidden>Use current page</button>
         </div>
+        <p id="paper-input-help" class="sr-only" data-i18n="paperInputHelp">Paste one paper reference. arXiv DOIs use 10.48550/arXiv.ID and open the latest version.</p>
         <div class="paper-meta">
           <span id="paper-label" data-i18n="currentPaper">Current paper</span>
           <span id="paper-source" class="source" data-i18n="identifyingSource">Reading page</span>

@@ -4,7 +4,7 @@ English | [简体中文](README.zh-CN.md)
 
 A lightweight Chrome extension that opens alphaXiv papers and pasted paper links or identifiers on arXiv. Choose Abstract, PDF, or HTML, and copy clean links or Markdown for your notes. Built with Manifest V3 and TypeScript, with preferences stored locally in your browser.
 
-Version 0.5.1 improves popup stability: paper state refreshes when the effective page URL changes, and localization preserves matching text and attributes. This resolves repeated rendering when the popup is opened as a standalone tab.
+Version 0.6.0 adds smart paste for a single Markdown link, angle-bracket link, or arXiv DOI, and keeps keyboard focus on preference controls after saving.
 
 ## Install in Chrome
 
@@ -30,7 +30,7 @@ See Chrome's official guide to [loading an unpacked extension](https://developer
 
 - **Page button:** Open the current alphaXiv paper on arXiv. The arrow beside Open offers Abstract, PDF, or HTML for that action only. The Copy button copies its abstract-page link; its menu offers three link formats and Markdown.
 - **Toolbar popup:** Preview the paper identifier and destination URL, save your reading format, version, and tab preferences, or use the Open menu to choose a format just once.
-- **Paste a paper:** Enter a supported alphaXiv/arXiv URL, a modern or legacy arXiv identifier, or `arXiv:1706.03762v3` in the popup. Preview updates as you type. Opening a manually entered paper always uses a new tab, keeping the source page open.
+- **Paste a paper:** Enter a supported alphaXiv/arXiv URL, a modern or legacy arXiv identifier, `arXiv:1706.03762v3`, a single Markdown link, or an arXiv DOI in the popup. Preview updates as you type. Opening a manually entered paper always uses a new tab, keeping the source page open.
 - **Right-click a paper link:** Choose **Open in arXiv** on a supported alphaXiv or arXiv link in another webpage. The paper opens in a new tab using your saved format and version preference, keeping the source page open.
 - **Keyboard shortcut:** Press `Alt+Shift+A` on Windows/Linux or `Option+Shift+A` on macOS. The shortcut uses the same reading preferences as the page button.
 - **Language:** The interface starts in English. Choose **English**, **简体中文**, or **Follow browser** in the popup. The choice is saved and also updates controls on open alphaXiv pages and the right-click menu.
@@ -59,6 +59,8 @@ Messages are stored in `public/_locales/en/messages.json` and `public/_locales/z
 - Supported alphaXiv and arXiv paper links through Chrome’s link context menu, including links on unrelated webpages.
 - Modern identifiers such as `1706.03762v3` and legacy identifiers such as `hep-th/9901001v2` or `math.GT/0309136`.
 - Popup input accepts a complete supported paper URL, a plain identifier, or an `arXiv:`-prefixed identifier. Leading and trailing whitespace is trimmed.
+- Smart paste accepts one Markdown link such as `[Attention](https://arxiv.org/abs/1706.03762v3)` or `[Attention](<https://arxiv.org/abs/1706.03762v3>)`, or one angle-bracket link such as `<https://arxiv.org/abs/1706.03762v3>`. The destination must be a supported paper or arXiv DOI URL. Labels are ignored; surrounding prose, multiple links, nested links, and optional Markdown titles are not accepted.
+- arXiv DOIs: `10.48550/arXiv.1706.03762`, `doi:10.48550/arXiv.1706.03762`, and their `https://doi.org/` or `https://dx.doi.org/` URLs. These are parsed locally, without contacting a DOI resolver. Only the arXiv DOI namespace is supported, and a DOI with a version suffix is rejected. [arXiv DOIs identify the latest version](https://blog.arxiv.org/2022/02/17/new-arxiv-articles-are-now-automatically-assigned-dois/), so both version preferences produce an unversioned destination for DOI input.
 
 The extension extracts the arXiv identifier from supported paper URLs. You can enter one paper at a time in the popup even from an unrelated webpage. Other uploaded documents and profile pages show the waiting-for-a-paper state when the input is empty. Navigation starts when you click an action or press the shortcut.
 
@@ -96,9 +98,11 @@ Run `npm run test:memory` with the same browser environment variables for a sepa
 
 When running browser commands through Codex on macOS, use the approved execution context described in [AGENTS.md](AGENTS.md) from the initial launch. The restricted context on the development machine can cause Chrome to abort during application registration and show the system's **Reopen** prompt before loading the extension. Type checks, unit tests, builds, and packaging run in the workspace sandbox.
 
-Version 0.5.1 passed TypeScript checking, 67 unit tests, the production build, the browser integration suite, and the resource-lifecycle stress test on Chrome 155. Browser checks confirm that source-page title updates preserve the popup DOM, and cover manual input and validation, temporary opening formats, Markdown and plain-link copying, current/latest versions, keyboard menu controls, native middle-click behavior, preference persistence, English/Chinese layouts within Chrome's 600px popup limit, and navigation through the real MV3 service worker. Unit tests cover context-menu click handling and lifecycle; the browser suite verifies registration through Chrome's context-menu API. Use the manual checks below for native right-click selection and operating-system shortcuts.
+Version 0.6.0 passed TypeScript checking, 72 unit tests, the production build, and the browser integration suite on Chrome 156.0.8078.80. The fixture-based browser checks include Markdown/DOI input and real service-worker new-tab navigation, rejection of invalid or misleading references, consecutive keyboard format changes and language-select focus, and English/Chinese layouts within Chrome's 600px popup limit. The resource-lifecycle stress test has not been rerun for 0.6.0.
 
-After 500 SPA transitions, 20 preference/menu rounds, and 40 popup open/close cycles, the post-warmup measurements kept one document per observed target, 114 content-page nodes with 53 listeners, and 280 popup nodes with 43 listeners. Popup JavaScript heap grew by approximately 8 KiB from the warm baseline. These results describe the finite fixture test and its observed counter scopes; they do not measure total Chrome memory or establish behavior for every webpage.
+Historical validation for version 0.5.1: TypeScript checking, 67 unit tests, the production build, the browser integration suite, and the resource-lifecycle stress test passed on Chrome 155. Those browser checks covered source-page title updates preserving the popup DOM, manual input and validation, temporary opening formats, Markdown and plain-link copying, current/latest versions, keyboard menu controls, native middle-click behavior, preference persistence, English/Chinese layouts within Chrome's 600px popup limit, and navigation through the real MV3 service worker. Unit tests covered context-menu click handling and lifecycle; the browser suite verified registration through Chrome's context-menu API. Use the manual checks below for native right-click selection and operating-system shortcuts.
+
+In that 0.5.1 stress test, after 500 SPA transitions, 20 preference/menu rounds, and 40 popup open/close cycles, the post-warmup measurements kept one document per observed target, 114 content-page nodes with 53 listeners, and 280 popup nodes with 43 listeners. Popup JavaScript heap grew by approximately 8 KiB from the warm baseline. These historical results describe the finite fixture test and its observed counter scopes; they do not measure version 0.6.0, total Chrome memory, or behavior for every webpage.
 
 ### Manual checks
 
@@ -111,6 +115,9 @@ After 500 SPA transitions, 20 preference/menu rounds, and 40 popup open/close cy
 | Select Latest version on a versioned paper | The destination and copied URLs omit `vN`; the selected paper identifier stays the same |
 | Choose a temporary format from either Open menu | That action uses the chosen format and saved version; the saved reading format stays unchanged |
 | Enter `arXiv:1706.03762v3` or `hep-th/9901001v2` in the popup | Preview shows the entered paper; opening uses a new tab even when the tab preference is off |
+| Paste `[Attention](https://arxiv.org/abs/1706.03762v3)` or `<https://arxiv.org/abs/1706.03762v3>` | Preview selects `1706.03762v3`; copying produces a clean arXiv link |
+| Paste `doi:10.48550/arXiv.1706.03762` or `https://doi.org/10.48550/arXiv.1706.03762` | Preview and copied links use unversioned `1706.03762` under either version preference |
+| Paste multiple Markdown links, surrounding prose, a journal DOI, or an arXiv DOI ending in `v3` | Opening and copying remain disabled |
 | Enter invalid text on a supported paper page | Opening and copying are disabled until the input is corrected or cleared |
 | Clear the input, or close and reopen the popup | The popup returns to the current page; entered text is cleared |
 | Choose Copy PDF or Copy HTML from either copy menu | The copied URL uses that format and selected version; the saved reading format stays unchanged |
@@ -121,6 +128,7 @@ After 500 SPA transitions, 20 preference/menu rounds, and 40 popup open/close cy
 | Press the keyboard shortcut on a paper page | The paper opens using the saved format, version, and tab preferences |
 | Open the popup on an unrelated website | Enter a paper URL or identifier to open or copy it; preferences remain available |
 | Switch between English and 简体中文, then reopen the popup | The popup and page button use the saved language; reading preferences retain their values |
+| Change format, version, or language using the keyboard | Focus returns to that preference after saving; moving to another control during saving keeps that new focus |
 
 Refresh existing alphaXiv tabs after installing or reloading the extension. If the shortcut is already assigned elsewhere, choose another one in Chrome's shortcut settings. If another extension redirects arXiv back to alphaXiv, adjust that extension's redirect settings.
 
@@ -128,13 +136,13 @@ Refresh existing alphaXiv tabs after installing or reloading the extension. If t
 
 Run `npm run package:store` to create the extension ZIP and the complete listing kit in `release/`. Packaging requires Node.js 22+ and the `zip` / `unzip` commands included with macOS.
 
-Upload `back-to-arxiv-0.5.1.zip` as the extension. The separate `back-to-arxiv-0.5.1-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
+Upload `back-to-arxiv-0.6.0.zip` as the extension. The separate `back-to-arxiv-0.6.0-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
 
 See [the submission guide](store/START-HERE.txt) for fields and assets. Use the public [privacy policy](https://timerring.com/back-to-arxiv/store/privacy-policy.html) in the Chrome Web Store's Privacy policy URL field. Confirm the publisher contact details before submitting. Support is available through [GitHub Issues](https://github.com/timerring/back-to-arxiv/issues).
 
 GitHub Pages publishes the policy directly from `store/privacy-policy.html` on `main`. Updating that file and pushing to `main` updates the live policy. The repository root's `.nojekyll` preserves the static HTML, and `index.html` points visitors to the policy.
 
-Use `npm run store:assets` to render the store graphics from their saved captures and layouts. After UI changes, refresh the captures as described in the guide.
+Use `npm run store:assets` to render the store graphics from their saved captures and layouts. The saved popup captures and graphics are refreshed for 0.6.0. After future UI changes, refresh the captures as described in the guide.
 
 ## Project structure
 
@@ -168,4 +176,4 @@ dist/                 Generated Chrome extension
 | `contextMenus` | Add an action to supported paper links and read the clicked link’s target URL |
 | The two alphaXiv HTTPS domains | Add page controls and follow navigation between papers |
 
-URL conversion runs entirely in the browser. Current page URLs, chosen context-menu link targets, and paper URLs or identifiers you enter are processed transiently to identify papers. Entered text stays in popup memory and clears when it closes. Stored data consists of reading-format, version, tab, and language preferences; temporary format choices apply only to the requested action. Markdown uses a locally generated identifier label. Navigation goes directly to arXiv, and runtime resources are bundled with the extension. Version 0.5 uses the same permissions and site access as 0.4.
+URL conversion runs entirely in the browser. Current page URLs, chosen context-menu link targets, and paper references you enter, including Markdown links and arXiv DOIs, are processed transiently to identify papers. Entered text stays in popup memory and clears when it closes. Stored data consists of reading-format, version, tab, and language preferences; temporary format choices apply only to the requested action. Markdown output uses a locally generated identifier label. DOI parsing makes no network request. Navigation goes directly to arXiv, and runtime resources are bundled with the extension. Version 0.6 uses the same permissions, site access, and stored preferences as 0.5.

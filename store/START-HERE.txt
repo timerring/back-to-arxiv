@@ -1,13 +1,13 @@
-Back to arXiv 0.5.1 — Chrome Web Store 上架资料
-准备日期：2026-10-30
+Back to arXiv 0.6.0 — Chrome Web Store 上架资料
+准备日期：2026-11-05
 
 1. 上传哪个文件
 
 在 Chrome Web Store Developer Dashboard 已有扩展的 Package 页选择 Upload new package；新建草稿时选择 Add new item。上传文件为：
-back-to-arxiv-0.5.1.zip
+back-to-arxiv-0.6.0.zip
 
 这是安装包，manifest.json 已位于 ZIP 根目录，包含构建后的脚本、界面、语言文件和图标。
-back-to-arxiv-0.5.1-store-kit.zip 是包含全部材料的资料包。先解压资料包，再选取其中的安装包上传。
+back-to-arxiv-0.6.0-store-kit.zip 是包含全部材料的资料包。先解压资料包，再选取其中的安装包上传。
 每个 ZIP 附带 .sha256 校验文件。
 
 2. 商店信息填写
@@ -31,14 +31,15 @@ back-to-arxiv-0.5.1-store-kit.zip 是包含全部材料的资料包。先解压�
 
 在英文和中文语言页分别上传对应截图。小宣传图使用英文品牌文案，是全局素材。
 截图展示实际扩展面板，外围排版用于说明功能。HTML 标注为实验性，保持与实际功能一致。
+面板截图已从 0.6.0 浏览器集成测试刷新，并重新生成商店图片。后续修改界面时，先运行浏览器测试，再用 --refresh-captures 更新截图与商店图片。
 
 4. 隐私与审核
 
-privacy-practices.txt：单一用途、各权限用途、远程代码和数据处理说明，可按字段粘贴。本版本沿用 0.4 的四项权限和站点范围，说明已加入手动输入、临时格式和 Markdown 功能。
+privacy-practices.txt：单一用途、各权限用途、远程代码和数据处理说明，可按字段粘贴。本版本沿用 0.5 的四项权限和站点范围，说明已包含 Markdown 与 arXiv DOI 输入的本地处理。
 reviewer-instructions.txt：英文审核测试步骤，包含公开测试论文地址和期望结果。
 privacy-policy.html：双语隐私政策网页，默认英文，可展开简体中文。
 
-本地处理网址同样属于需要披露的数据处理。当前实现建议声明 Web history，范围为临时处理当前页面 URL、用户主动调用右键菜单的论文链接目标 URL，以及用户在面板输入的论文 URL。手动输入的网址和编号仅在面板内存中处理，关闭面板即清空；仅持久保存阅读格式、版本、标签页和语言偏好。
+本地处理网址同样属于需要披露的数据处理。当前实现建议声明 Web history，范围为临时处理当前页面 URL、用户主动调用右键菜单的论文链接目标 URL，以及用户在面板输入的论文 URL。手动输入的链接、编号、Markdown 与 arXiv DOI 仅在面板内存中处理，关闭面板即清空；仅持久保存阅读格式、版本、标签页和语言偏好。DOI 解析不访问 DOI 服务。
 
 Privacy policy URL：
 https://timerring.com/back-to-arxiv/store/privacy-policy.html
@@ -60,7 +61,10 @@ GitHub Pages 从 main 分支发布 store/privacy-policy.html。修改政策并�
 
 5. 本版本变化
 
-• 0.5.1 改善面板稳定性：仅在有效论文网址变化时刷新状态，本地化保留已匹配的文本与属性，修复独立标签页面板的重复渲染。
+• 0.6.0 支持粘贴单个 Markdown 链接、尖括号链接与 arXiv DOI。Markdown 目标须为受支持的论文或 DOI 网址，不接受附带段落、多个链接、嵌套链接或可选标题。
+• arXiv DOI 支持 10.48550/arXiv.编号、doi: 前缀及 doi.org / dx.doi.org 网址；仅识别不带版本号的 arXiv DOI，本地生成省略版本号的 arXiv 链接，不请求 DOI 服务。
+• 用键盘修改偏好后保留控件焦点；保存期间主动移到其他控件时不抢回焦点。
+• 未增加权限、站点范围、网络请求或持久保存的数据。
 
 0.5 系列功能：
 
@@ -69,7 +73,7 @@ GitHub Pages 从 main 分支发布 store/privacy-policy.html。修改政策并�
 • 复制菜单增加 Markdown：固定使用摘要页地址和 arXiv:论文编号标签，标签与链接遵循同一版本偏好。主复制按钮及原有三种格式复制继续保留。
 • 输入仅保留在面板内存，关闭即清空；权限、站点范围及持久保存的四项偏好与 0.4 一致。
 
-上传 0.5.1 后，同步更新详细介绍、截图、隐私权限理由和审核说明。
+上传 0.6.0 时，同步更新详细介绍、截图、隐私权限理由和审核说明。
 
 6. 本地重建
 
