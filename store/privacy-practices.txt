@@ -1,54 +1,57 @@
-BACK TO ARXIV 0.7.0 — PRIVACY TAB FILLING GUIDE
+BACK TO ARXIV 0.8.0 — PRIVACY TAB FILLING GUIDE
 Updated from the implementation on 2026-11-05; Chrome Web Store references below.
 
 SINGLE PURPOSE — PASTE THIS
-Help users turn supported paper references into arXiv links for reading and notes. Users can open or copy one paper from a supported page, link, or popup input, or organize a pasted list in a separate batch workspace and copy or download its unique valid papers as Markdown. Opening supports abstract, PDF, and experimental HTML; list export uses abstract links and identifier labels. Actions use the chosen current or latest paper version and are explicitly invoked by the user.
+Help users read and cite supported arXiv papers. Users can open or copy a paper from a page, link, or popup input, or organize a pasted reference list in a separate workbench. They can optionally fetch paper titles and authors from arXiv and export a title-based Markdown list or generated BibTeX. Opening supports abstract, PDF, and experimental HTML; citation export uses abstract links and the selected current/latest version. Lookup, copying, and downloads require explicit user actions.
 
 STORAGE PERMISSION — PASTE THIS
-Saves reading format, current or latest version preference, current-tab or new-tab preference, and interface language in chrome.storage.local. These four settings stay in the user's browser. A temporary opening format applies to one action. Popup input and organizer drafts stay in the relevant page memory and clear when it closes or reloads. The organizer starts with the saved version preference; changes within it do not persist or modify the popup preference. No paper list is stored.
+Saves reading format, current/latest version, current/new-tab choice, and language in chrome.storage.local. Drafts, fetched metadata, and batch version choices stay in the workbench's memory and clear on close or reload. The background stores only metadataNextRequestAt, a request-pacing timestamp, in chrome.storage.session so requests remain spaced across service-worker restarts. It stores no paper identifiers, titles, authors, or response XML in session storage. No paper list or browsing-history log is stored.
 
 ACTIVETAB PERMISSION — PASTE THIS
-Reads the current tab URL when the user invokes the toolbar action or keyboard shortcut, identifies a supported paper, and opens or copies its corresponding arXiv link. It also lets the popup display the current paper identifier and destination URL.
+Reads the current tab URL when the user invokes the toolbar action or shortcut, identifies a supported paper, and opens or copies its arXiv link. It also lets the popup display the current paper identifier and destination.
 
 CLIPBOARDWRITE PERMISSION — PASTE THIS
-Writes a generated arXiv abstract, PDF, HTML, or Markdown link, or a batch Markdown list, when the user invokes a copy action. The main Copy button uses the abstract format. Markdown uses an abstract URL with an arXiv:identifier label, generated locally. The current or latest version preference applies to the URL and Markdown label. Clipboard access is limited to writing the requested output; paper input is provided by the user through the popup or organizer field. Batch Markdown downloads are user-requested browser file downloads and do not need an additional extension permission.
+Writes a requested arXiv abstract/PDF/HTML/Markdown link, batch Markdown list, or generated BibTeX when the user clicks Copy. The single-paper Markdown label uses the identifier. Batch Markdown can use fetched titles with identifier fallback; BibTeX includes successfully fetched papers only. Existing clipboard contents are not read. Markdown and BibTeX downloads are explicit browser file downloads and do not require the downloads permission.
 
 CONTEXTMENUS PERMISSION — PASTE THIS
-Adds Open in arXiv to the context menu for supported alphaXiv and arXiv paper links. When the user selects this action, the extension reads that link's target URL, identifies the paper locally, and opens its arXiv link in a new tab using the saved reading format and version preference.
+Adds Open in arXiv to supported alphaXiv/arXiv link context menus. The chosen link's target URL is identified locally, then opened in a new tab using the user's reading preferences.
 
-ALPHAXIV SITE ACCESS — PASTE IF A HOST JUSTIFICATION FIELD IS SHOWN
-Runs on https://alphaxiv.org/* and https://www.alphaxiv.org/* to identify paper URLs, display Open arXiv and copy controls with their format menus, and keep those controls accurate when the user navigates between papers within the site.
+ALPHAXIV CONTENT-SCRIPT SITE ACCESS — PASTE IF REQUESTED
+Runs on https://alphaxiv.org/* and https://www.alphaxiv.org/* to identify paper URLs, display opening/copy controls, and follow navigation between papers.
 
-Implementation note: these are content_scripts.matches. The manifest requests storage, activeTab, clipboardWrite, and contextMenus. Version 0.7 retains version 0.6's permissions, content-script site access, and four saved preferences. Batch parsing, deduplication, and Markdown generation add no network requests or stored data.
+OPTIONAL ARXIV API HOST ACCESS — PASTE IF REQUESTED
+optional_host_permissions declares only https://export.arxiv.org/*. Clicking Fetch paper details requests this access through Chrome. After a grant, the background requests https://export.arxiv.org/api/query with selected unique arXiv identifiers, in batches of up to 50. Raw pasted labels and complete source URLs are not sent. Requests omit cookies and the referrer; arXiv receives identifiers and ordinary network information such as IP address and headers. The response is descriptive metadata, not executable code. Denying or revoking access leaves local parsing, deduplication, and identifier-list export available. Pasting, editing, or changing settings never starts lookup. All workbenches share one paced connection; the user can cancel, and retry requests only unavailable papers.
+
+IMPLEMENTATION SCOPE
+The four required permissions remain storage, activeTab, clipboardWrite, and contextMenus. AlphaXiv content-script matches are unchanged. Version 0.8 adds optional export.arxiv.org access and the session pacing timestamp; it does not add required host access or persist citation metadata. Title, author, and BibTeX data remain in the active workbench until it is closed or reloaded. BibTeX is generated locally from Atom metadata, using the first-submission year and selected version.
 
 REMOTE CODE
 Select: No, I am not using remote code.
-Explanation: All JavaScript, CSS, interface text, and icons are bundled with the extension. Opening an arXiv page is ordinary browser navigation. Extension functionality executes from the installed package.
+Explanation: All executable JavaScript, CSS, UI text, and icons are bundled. The optional arXiv API response is parsed as metadata and rendered as text, never executed. Opening a paper is ordinary browser navigation. XML parsing and independent BibTeX parsing tools used by tests are development-only and are not runtime code loaded from a server.
 
 DATA USAGE CATEGORIES
-Recommended selection for the current code: Web history (current page URLs, target URLs of paper links explicitly invoked through the context menu, and paper URLs the user enters in the popup or batch organizer).
-Keep the other categories unselected based on the current implementation.
-
-This recommendation includes transient local URL processing. Entered paper references and batch results are held in the relevant page memory and clear when that page closes or reloads. Browsing-history records are outside the extension's stored data. Chrome's User Data FAQ requires disclosure even for data processed or stored only on the device. Match the wording of the live dashboard to this behavior when completing the form.
+Review Web history for current page URLs, context-menu target URLs, and paper URLs explicitly entered by users. The on-demand lookup also sends the selected paper identifiers to arXiv and receives public descriptive metadata. Match the live dashboard fields and disclosures to these behaviors, including transient local processing; do not describe the entire extension as offline or claim that the API lookup sends no data.
 
 DATA HANDLING / REVIEWER EXPLANATION — PASTE THIS WHERE APPLICABLE
-The extension reads alphaXiv URLs for page controls, the active tab URL for popup/shortcut actions, and the target URL of a paper link chosen through the context menu. Users may enter a paper URL or identifier, a single Markdown or angle-bracket link, or an arXiv DOI in the popup, or paste a list of these references into the batch organizer. Entered references, line numbers, duplicate and invalid markers, and generated Markdown are processed locally in memory; popup input and batch drafts clear when the relevant page closes or reloads. Pasted Markdown labels are ignored when generating output. DOI parsing does not contact a resolver; arXiv DOI input produces an unversioned paper URL. Saved data consists of format, version, tab, and language preferences. Temporary formats apply to one action. Follow browser reads Chrome's interface language to select a bundled translation. Copy actions write the requested link or batch Markdown list; a download action saves the requested Markdown file through the browser. Batch export excludes duplicate and invalid lines and uses local identifier labels and abstract URLs. The organizer version control does not change saved preferences. Latest version creates an unversioned URL locally. Opening navigates to arxiv.org over HTTPS, where that site's privacy practices apply. Executable resources are bundled with the extension.
+The extension identifies requested paper references locally, including manually pasted Markdown or DOI input, without contacting a DOI resolver. Drafts, line numbers, duplicates, invalid markers, fetched metadata, and generated outputs stay in the relevant page's memory and clear on close or reload. Only an explicit Fetch click, after optional host access is granted, sends selected unique arXiv identifiers to arXiv's official API; pasted labels and complete source URLs are excluded. Requests omit cookies and the referrer. arXiv handles the identifiers and ordinary network information under its own privacy practices. Paper titles and authors are displayed as text. Markdown uses fetched titles when selected, falling back to identifier labels; BibTeX includes only successfully fetched, version-matched papers. It is generated locally from metadata and uses the first-submission year. Copy and .md/.bib download require user action. Four reading preferences are saved locally; session storage contains only metadataNextRequestAt, not identifiers or responses. The organizer's version control does not change saved preferences. Executable resources are bundled. No developer-operated collection, analytics, or advertising service is included.
 
 LIMITED USE CERTIFICATIONS
-The three certifications in the current dashboard are consistent with this implementation: data use serves the stated paper-navigation/copying purpose; data is not sold or transferred for unrelated uses; data is not used for creditworthiness or lending decisions. The publisher should review and affirm the certifications when submitting.
+Review the current dashboard certifications against this implementation before submitting. The data use serves the stated paper-navigation, reference-organization, and citation-export purpose. Data is not sold, used for advertising, or used for creditworthiness or lending decisions.
 
 PRIVACY POLICY URL
 https://timerring.com/back-to-arxiv/store/privacy-policy.html
-Enter this public HTTPS page in the dedicated privacy-policy field. GitHub Pages publishes store/privacy-policy.html from the main branch, so policy changes are deployed when pushed.
+GitHub Pages publishes store/privacy-policy.html from main. Deploy the updated policy with the matching release before submitting the store package.
 
 SUPPORT URL
 https://github.com/timerring/back-to-arxiv/issues
 
 CONTACT / PUBLISHER DETAILS
-Choose the publisher's display name and public contact information in the developer dashboard. The policy provides GitHub Issues for public questions about the policy and extension behavior. Private inquiries can use the developer contact listed in the store when available.
+Confirm the publisher's display name and public developer contact in the dashboard. GitHub Issues is the public support channel; private inquiries can use the contact listed in the store when available.
 
 OFFICIAL REFERENCES
 https://developer.chrome.com/docs/webstore/cws-dashboard-privacy
 https://developer.chrome.com/docs/webstore/program-policies/user-data-faq
-https://developer.chrome.com/docs/webstore/program-policies/policies
-https://developer.chrome.com/docs/extensions/reference/api/contextMenus
+https://developer.chrome.com/docs/extensions/reference/api/permissions
+https://developer.chrome.com/docs/extensions/reference/api/storage
+https://info.arxiv.org/help/api/user-manual.html
+https://info.arxiv.org/help/api/tou.html

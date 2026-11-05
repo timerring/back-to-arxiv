@@ -1,10 +1,13 @@
 import { openPaperTab } from './navigation';
 import { registerContextMenu } from './context-menu';
 import { handleOpenMessage } from './messages';
+import { cancelMetadataTab, handleMetadataMessage } from './metadata-service';
 
 registerContextMenu();
 
 chrome.runtime.onMessage.addListener(handleOpenMessage);
+chrome.runtime.onMessage.addListener(handleMetadataMessage);
+chrome.tabs.onRemoved.addListener(cancelMetadataTab);
 
 chrome.commands.onCommand.addListener((command, tab) => {
   if (command !== 'open-arxiv') return;

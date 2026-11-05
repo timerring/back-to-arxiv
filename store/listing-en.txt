@@ -7,7 +7,7 @@ Default listing language
 English
 
 Version
-0.7.0
+0.8.0
 
 Short description (matches the extension manifest; 118 characters)
 Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut.
@@ -22,9 +22,14 @@ Enter a supported alphaXiv or arXiv URL, a modern identifier such as 1706.03762v
 You can also paste one Markdown link, such as [Attention](https://arxiv.org/abs/1706.03762v3), or an angle-bracket link. The destination must be a supported paper or arXiv DOI URL. Paste an arXiv DOI as 10.48550/arXiv.1706.03762, with a doi: prefix, or as a doi.org / dx.doi.org URL. arXiv DOIs select the unversioned paper and are parsed locally without contacting a DOI service. Versioned DOIs, journal DOIs, multiple references in one input line, surrounding prose, and Markdown titles are not accepted.
 
 Batch organizer for paper lists
-Open Batch organizer from the popup to use a separate workspace. Paste one paper reference per nonblank line; URLs, identifiers, arXiv DOIs, inline Markdown links, and Markdown bullet or numbered lists are supported. Results show unique papers, duplicates with their first original line number, and invalid lines. Unique papers keep their first-occurrence order. Copy Markdown or download a .md file containing only unique valid papers, using arXiv identifier labels and abstract-page URLs. Invalid and duplicate rows remain visible but are excluded from export.
+Open Batch organizer from the popup to use a separate workspace. Paste one paper reference per nonblank line; URLs, identifiers, arXiv DOIs, inline Markdown links, and Markdown bullet or numbered lists are supported. Results show unique papers, duplicates with their first original line number, and invalid lines. Unique papers keep their first-occurrence order. Copy Markdown or download a .md file containing only unique valid papers, using arXiv identifier labels and abstract-page URLs before optional title retrieval. Invalid and duplicate rows remain visible but are excluded from export.
 
 Current version keeps different explicit versions and unversioned references separate. Latest version removes suffixes and merges versions of the same paper. The organizer starts with your saved version preference; changing it there leaves popup preferences unchanged. The input limit is 500 nonblank lines and 100,000 characters. Exceeding either limit rejects the whole batch and disables export. Parsing and deduplication run locally without network requests. Drafts clear when the workspace is closed or reloaded; copying and downloading are explicit actions.
+
+Add titles, authors, and BibTeX when needed
+Click Fetch paper details in the organizer and grant Chrome's optional access to export.arxiv.org. This sends only selected unique arXiv identifiers to the official API, not pasted labels or complete source URLs. No lookup runs when you merely paste, edit, or change a setting. Results show fetched titles and authors. Use titles in Markdown exports title-based links for Obsidian; unavailable titles fall back to identifiers. Copy BibTeX or download .bib includes successfully fetched papers only, with the fetched/total count shown. BibTeX is generated locally from arXiv metadata, using the first-submission year and selected version. Import the .bib file into Zotero or another reference manager.
+
+Retrieval has progress, cancellation, and retry for unavailable papers. Changing the input or version cancels pending work, and metadata for another explicit version is never reused. Rejecting or revoking access leaves local link-list export available. Requests are shared across workbench tabs and paced; large lists may take a moment. Details and drafts clear on close or reload. These are file exports, not account connections or library synchronization.
 
 Choose how you read
 • Open the arXiv abstract page, PDF, or HTML (experimental).
@@ -48,9 +53,9 @@ Press Alt+Shift+A on Windows/Linux or Option+Shift+A on macOS. You can change th
 English and Simplified Chinese
 The interface starts in English. Choose English, 简体中文, or Follow browser in the popup. The language choice also updates page controls and the right-click menu.
 
-Local preferences
-Reading format, version, tab behavior, and language are saved in your browser. Paper links and identifiers are processed locally, and opening a paper navigates directly to arXiv. Clipboard access writes the requested paper link or Markdown list only when you request a copy. Batch downloads save a Markdown file only when requested; drafts are not stored.
+Local preferences and optional retrieval
+Reading format, version, tab behavior, and language are saved locally. The background keeps only a request-pacing timestamp in session storage, not paper identifiers or API responses. Metadata fetches omit cookies and the referrer; arXiv receives selected identifiers and ordinary network information such as IP address and headers. Clipboard actions and Markdown/BibTeX downloads run only when requested. Drafts and fetched metadata stay in tab memory. Opening a paper navigates directly to arXiv.
 
 HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for paper readers.
 
-Version 0.7.0 adds the separate batch organizer with duplicate detection, invalid-line marking, and Markdown list copy or download. The popup retains a single entry to the workspace.
+Version 0.8.0 adds on-demand paper details, title-based Markdown, and generated BibTeX exports. The API host is optional; the original link workflow remains available without it.

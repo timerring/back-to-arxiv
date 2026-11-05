@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, rm, readFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, rm, readFile, cp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
 import { runBatchChecks } from './batch-browser.mjs';
+import { runCitationChecks } from './citation-browser.mjs';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const extensionPath = join(root, 'dist');
+const extensionPath = await mkdtemp(join(tmpdir(), 'back-to-arxiv-fixture-'));
 const output = join(root, 'test-results');
 const en = JSON.parse(await readFile(join(root, 'public/_locales/en/messages.json'), 'utf8'));
 const zh = JSON.parse(await readFile(join(root, 'public/_locales/zh_CN/messages.json'), 'utf8'));
@@ -98,6 +99,15 @@ async function openPopup(context, paperPage, extensionId) {
 }
 
 try {
+  await cp(join(root, 'dist'), extensionPath, { recursive: true });
+  const manifestPath = join(extensionPath, 'manifest.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  assert.deepEqual(manifest.optional_host_permissions, ['https://export.arxiv.org/*']);
+  assert.equal(manifest.host_permissions, undefined);
+  // Native optional-host prompts need a human browser. Pregrant only the fixture
+  // copy so headless tests exercise the real worker's permission guard and fetch.
+  manifest.host_permissions = [...manifest.optional_host_permissions];
+  await writeFile(manifestPath, JSON.stringify(manifest));
   context = await chromium.launchPersistentContext(profile, {
     channel: 'chromium',
     executablePath: process.env.CHROMIUM_EXECUTABLE_PATH,
@@ -571,6 +581,7 @@ try {
   if (popup.isClosed() === false) await popup.close();
   assert.equal(paper.url(), 'https://example.org/');
   await runBatchChecks({ context, worker, extensionId, paper, openPopup, assertPopupFits, output, en, zh, readClipboard });
+  await runCitationChecks({ context, worker, extensionId, paper, output, en, zh, readClipboard });
   assert.deepEqual(browserErrors, []);
   console.log('PASS: from unrelated pages, links/IDs/DOIs/Markdown support preview, copy and real new-tab navigation; invalid references stay disabled, input stays in memory and both languages fit Chrome.');
   console.log(`Browser integration passed. Screenshots: ${output}`);
@@ -583,4 +594,5 @@ try {
 } finally {
   await context?.close();
   await rm(profile, { recursive: true, force: true });
+  await rm(extensionPath, { recursive: true, force: true });
 }

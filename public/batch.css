@@ -50,10 +50,28 @@ select { min-width: 148px; max-width: 60%; padding: 8px 25px 8px 10px; border: 1
 .counts > div:first-child strong { color: var(--accent); }
 .counts span { color: #796b5d; font-size: 10px; line-height: 1.3; }
 .export-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-top: 17px; }
+.citation-tools { margin-top: 17px; padding: 13px; border: 1px solid var(--line); border-radius: 9px; background: #faf7f1; }
+.citation-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.citation-heading h3 { margin: 0; font-size: 12px; font-weight: 600; }
+.metadata-coverage { white-space: nowrap; color: var(--muted); font-size: 10px; }
+.metadata-coverage strong { color: var(--accent); }
+.metadata-disclosure { margin-bottom: 11px; }
+.metadata-actions { display: flex; align-items: center; gap: 15px; }
+.metadata-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; justify-content: space-between; }
+.metadata-actions .button { min-height: 34px; padding: 6px 12px; font-size: 11px; }
+.metadata-status { margin: 9px 0 0; font-size: 10px; color: var(--muted); line-height: 1.7; overflow-wrap: anywhere; }
+.metadata-status.is-error { color: #a03429; }
+.title-option { display: flex; align-items: center; gap: 8px; font-size: 11px; line-height: 1.5; color: #6d5e51; }
+.title-option input { margin: 0; accent-color: var(--accent); }
+.title-option:has(input:disabled) { opacity: .6; }
+.title-option input:focus-visible { outline: 3px solid #bd7354; outline-offset: 3px; }
+.bibtex-actions { margin-top: 9px; }
+.bibtex-note { margin: 9px 0 0; font-size: 10px; }
 .button { min-height: 40px; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 550; }
 .primary { background: var(--accent); color: #fff9f3; border: 1px solid var(--accent); }
 .primary:hover:enabled { background: #863329; border-color: #863329; }
 .primary[aria-busy="true"] { cursor: progress; }
+.button[aria-busy="true"] { cursor: progress; }
 .secondary { color: #5d5149; background: transparent; border: 1px solid #ddd4c9; }
 .secondary:hover:enabled { background: #f1ebe3; border-color: #c8b7a8; }
 .status { min-height: 18px; margin: 10px 0 13px; color: var(--muted); font-size: 11px; line-height: 1.7; overflow-wrap: anywhere; }
@@ -72,12 +90,20 @@ select { min-width: 148px; max-width: 60%; padding: 8px 25px 8px 10px; border: 1
 [data-status="invalid"] .result-badge { background: #faeae5; color: #a14d3d; }
 .paper-link { color: #4a3c31; text-decoration: none; font: 13px/1.5 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; overflow-wrap: anywhere; }
 .paper-link:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+.paper-title { font-family: inherit; font-size: 13px; font-weight: 550; line-height: 1.6; }
+.paper-identifier { margin: 5px 0 0; color: #887663; font: 10px/1.6 ui-monospace, monospace; overflow-wrap: anywhere; }
+.paper-authors { margin: 5px 0 0; max-height: 7.2em; overflow-y: auto; color: #6c5e52; font-size: 10px; line-height: 1.8; overflow-wrap: anywhere; }
+.paper-authors:focus-visible { outline: 2px solid #bd7354; outline-offset: 2px; }
+.citation-state { margin: 6px 0 0; color: #9a8b7d; font-size: 9px; line-height: 1.5; }
+[data-metadata="ready"] .citation-state { color: #60764e; }
+[data-metadata="failed"] .citation-state { color: #a14d3d; }
 .raw-input { display: block; margin-top: 6px; color: #948578; font: 10px/1.6 ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; overflow-wrap: anywhere; white-space: pre-wrap; }
 [data-status="invalid"] .raw-input { color: #8e5746; font-size: 11px; }
 .result-detail { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
 .markdown-preview { margin-top: 15px; padding-top: 14px; border-top: 1px solid var(--line); }
 .markdown-preview summary { color: #796b5d; cursor: pointer; font-size: 11px; }
 #batch-markdown { margin-top: 11px; min-height: 125px; font-size: 10px; }
+#batch-bibtex { margin-top: 11px; min-height: 170px; font-size: 10px; }
 .page-footer { margin-top: 22px; color: #9a8e81; font-size: 10px; line-height: 1.7; }
 @media (max-width: 780px) {
   main { padding: 22px 20px; }
@@ -98,4 +124,6 @@ select { min-width: 148px; max-width: 60%; padding: 8px 25px 8px 10px; border: 1
   .version-control { align-items: flex-start; flex-direction: column; gap: 9px; }
   select { max-width: 100%; width: 100%; }
   .counts > div { padding: 0 9px; }
+  .citation-tools { padding: 13px; }
+  .citation-heading { flex-wrap: wrap; gap: 7px; }
 }

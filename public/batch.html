@@ -11,7 +11,7 @@
     <main>
       <header class="page-header">
         <div class="brand"><img src="icons/icon-48.png" width="32" height="32" alt="" /><span>Back to arXiv</span></div>
-        <span class="local-note" data-i18n="batchLocalNote">Processed locally · No draft saved</span>
+        <span class="local-note" data-i18n="batchLocalNote">Fetch only on request · No draft saved</span>
       </header>
 
       <section class="intro" aria-labelledby="batch-heading">
@@ -48,10 +48,30 @@
             <div><strong id="batch-invalid-count">0</strong><span data-i18n="batchInvalidLabel">Need attention</span></div>
           </div>
           <p id="batch-export-note" class="help" data-i18n="batchExportNote">Export includes unique, valid references in their original order. Duplicates and invalid lines are excluded.</p>
+          <section class="citation-tools" aria-labelledby="batch-citation-heading">
+            <div class="citation-heading">
+              <h3 id="batch-citation-heading" data-i18n="batchCitationHeading">Titles, authors &amp; BibTeX</h3>
+              <span class="metadata-coverage"><span data-i18n="batchMetadataCoverage">Fetched</span> <strong id="batch-metadata-count">0</strong>/<span id="batch-metadata-total">0</span></span>
+            </div>
+            <p class="help metadata-disclosure" data-i18n="batchMetadataDisclosure">Only Fetch sends the unique arXiv IDs to arXiv's API to retrieve titles and authors. Details stay in this tab.</p>
+            <div class="metadata-controls">
+              <div class="metadata-actions">
+                <button id="batch-fetch-metadata" class="button secondary" type="button" disabled data-i18n="batchMetadataFetch">Fetch paper details</button>
+                <button id="batch-cancel-metadata" class="text-button" type="button" hidden data-i18n="batchMetadataCancel">Cancel</button>
+              </div>
+              <label class="title-option" for="batch-use-titles"><input id="batch-use-titles" type="checkbox" checked disabled /><span data-i18n="batchUseTitles">Use titles in Markdown</span></label>
+            </div>
+            <p id="batch-metadata-status" class="metadata-status" role="status" aria-live="polite" aria-atomic="true"></p>
+          </section>
           <div class="export-actions">
             <button id="batch-copy" class="button primary" type="button" disabled data-i18n="batchCopy">Copy Markdown</button>
             <button id="batch-download" class="button secondary" type="button" disabled data-i18n="batchDownload">Download .md</button>
           </div>
+          <div id="batch-bibtex-actions" class="export-actions bibtex-actions" hidden>
+            <button id="batch-bibtex-copy" class="button secondary" type="button" disabled data-i18n="batchBibtexCopy">Copy BibTeX</button>
+            <button id="batch-bibtex-download" class="button secondary" type="button" disabled data-i18n="batchBibtexDownload">Download .bib</button>
+          </div>
+          <p id="batch-bibtex-note" class="help bibtex-note"></p>
           <p id="batch-status" class="status" role="status" aria-live="polite" aria-atomic="true"></p>
 
           <div id="batch-empty" class="empty-state"><span aria-hidden="true">↗</span><p data-i18n="batchEmpty">Your list starts here.</p><small data-i18n="batchEmptyDetail">Paste references to see valid papers, duplicates, and lines to fix.</small></div>
@@ -62,9 +82,14 @@
             <label class="sr-only" for="batch-markdown" data-i18n="batchMarkdownLabel">Markdown export preview</label>
             <textarea id="batch-markdown" rows="5" readonly spellcheck="false"></textarea>
           </details>
+          <details id="batch-bibtex-preview" class="markdown-preview" hidden>
+            <summary data-i18n="batchBibtexPreview">Preview BibTeX</summary>
+            <label class="sr-only" for="batch-bibtex" data-i18n="batchBibtexLabel">BibTeX export preview</label>
+            <textarea id="batch-bibtex" rows="7" readonly spellcheck="false"></textarea>
+          </details>
         </section>
       </div>
-      <footer class="page-footer" data-i18n="batchFooter">References stay in this tab and clear when it closes. Exported links always point to arXiv abstract pages.</footer>
+      <footer class="page-footer" data-i18n="batchFooter">Drafts and fetched details stay in this tab and clear on close or reload. Exported links point to arXiv abstract pages.</footer>
     </main>
   </body>
 </html>
