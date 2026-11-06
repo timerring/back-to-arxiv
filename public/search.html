@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title data-i18n="searchPageTitle">Search arXiv · Back to arXiv</title>
+    <link rel="stylesheet" href="search.css" />
+    <script src="search.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header><img src="icons/icon-48.png" width="30" height="30" alt="" />Back to arXiv</header>
+      <h1 data-i18n="searchHeading">Search arXiv</h1>
+      <form id="search-form" autocomplete="off">
+        <label for="search-input" data-i18n="searchInputLabel">Title or keywords</label>
+        <div class="controls">
+          <input id="search-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="search-disclosure" disabled />
+          <button id="search-submit" type="submit" data-i18n="searchArxiv" disabled>Search arXiv</button>
+          <button id="search-cancel" type="button" data-i18n="searchCancel" hidden>Cancel</button>
+        </div>
+        <p id="search-disclosure" class="note" data-i18n="searchDisclosure">Search sends this query to arXiv. Queries and results stay in this tab and clear on reload or close.</p>
+      </form>
+      <p id="search-status" role="status" aria-live="polite" aria-atomic="true"></p>
+      <section id="results-panel" aria-labelledby="results-heading" hidden>
+        <div class="results-heading">
+          <h2 id="results-heading" data-i18n="searchResultsLabel">Matching papers</h2>
+          <span id="search-summary"></span>
+        </div>
+        <ol id="search-results"></ol>
+        <nav id="search-pages" data-i18n-aria-label="searchPagination" aria-label="Search results pages" hidden>
+          <button type="button" id="search-prev" data-i18n="searchPrevious" disabled>Previous</button>
+          <button type="button" id="search-next" data-i18n="searchNext" disabled>Next</button>
+        </nav>
+        <p id="search-limit" class="note" data-i18n="searchRefine" hidden>Only the first 200 results are available here. Refine your query to find more specific papers.</p>
+      </section>
+    </main>
+  </body>
+</html>

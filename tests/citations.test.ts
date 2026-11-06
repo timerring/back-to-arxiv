@@ -62,6 +62,10 @@ test('only direct Atom fields are accepted and malformed or unrequested entries 
   }
   const hostileId = entry('1706.03762v3').replace('http://arxiv.org/abs/', 'https://arxiv.org.evil.example/abs/');
   assert.equal(parseArxivFeed(feed(hostileId), ['1706.03762v3']).size, 0);
+  for (const id of ['https://arxiv.org/pdf/1706.03762v3.pdf', 'https://arxiv.org/abs/1706.03762v3?redirect=evil']) {
+    const indirectId = entry('1706.03762v3').replace('http://arxiv.org/abs/1706.03762v3', id);
+    assert.equal(parseArxivFeed(feed(indirectId), ['1706.03762v3']).size, 0);
+  }
   assert.equal(parseArxivFeed(feed(entry('1706.03762v3')), ['2301.12345']).size, 0);
 });
 

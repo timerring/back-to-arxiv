@@ -15,6 +15,7 @@ export interface CitationMetadata {
 
 const ATOM = 'http://www.w3.org/2005/Atom';
 const ARXIV = 'http://arxiv.org/schemas/atom';
+const OPENSEARCH = 'http://a9.com/-/spec/opensearch/1.1/';
 const cleanText = (value: string): string => value.replace(/[\s\u0000-\u001f\u007f]+/g, ' ').trim();
 const baseId = (id: string): string => id.replace(/v[1-9]\d*$/, '');
 
@@ -63,8 +64,8 @@ function children(parent: Element, name: string, namespace = ATOM): Element[] {
     && (node as Element).localName === name && (node as Element).namespaceURI === namespace);
 }
 
-function text(parent: Element, name: string): string {
-  const nodes = children(parent, name);
+function text(parent: Element, name: string, namespace = ATOM): string {
+  const nodes = children(parent, name, namespace);
   if (nodes.length !== 1 || Array.from(nodes[0]!.childNodes).some((node) => node.nodeType === 1)) return '';
   return cleanText(nodes[0]!.textContent ?? '');
 }
@@ -75,11 +76,8 @@ function newer(left: string, right: string): boolean {
   return a.length !== b.length ? a.length > b.length : a > b;
 }
 
-/** Parse an Atom response, matching IDs rather than relying on response order. */
-export function parseArxivFeed(xml: string, requestedIds: readonly string[]): Map<string, CitationMetadata> {
-  if (Array.isArray(requestedIds) === false || requestedIds.some((id) => isId(id) === false)) {
-    throw new TypeError('Valid arXiv identifiers are required.');
-  }
+/** Both lookup and search accept the same bounded, namespace-aware Atom envelope. */
+function parseFeed(xml: string): Element {
   if (typeof xml !== 'string' || new TextEncoder().encode(xml).byteLength > MAX_CITATION_FEED_BYTES
     || /<!\s*(?:DOCTYPE|ENTITY)\b/i.test(xml)) throw new CitationParseError();
   let document: Document;
@@ -88,17 +86,32 @@ export function parseArxivFeed(xml: string, requestedIds: readonly string[]): Ma
   const feed = document.documentElement;
   if (feed === null || feed.localName !== 'feed' || feed.namespaceURI !== ATOM
     || document.getElementsByTagNameNS('*', 'parsererror').length > 0 || document.doctype !== null) throw new CitationParseError();
+  return feed;
+}
+
+function entryMetadata(entry: Element): CitationMetadata | undefined {
+  const url = text(entry, 'id');
+  if (/^https?:\/\/(?:www\.)?arxiv\.org\/api\/errors(?:[#/?]|$)/i.test(url)) throw new CitationParseError();
+  // Atom identifiers are direct abstract URLs, never wrapper links or extracted IDs.
+  if (/^https?:\/\/(?:www\.)?arxiv\.org\/abs\/[^?#\s]+$/.test(url) === false) return;
+  const paper = parsePaperUrl(url);
+  if (paper?.source !== 'arxiv') return;
+  const category = children(entry, 'primary_category', ARXIV)[0]?.getAttribute('term') ?? undefined;
+  return normalizeMetadata({ id: paper.id, title: text(entry, 'title'),
+    authors: children(entry, 'author').map((author) => text(author, 'name')),
+    published: text(entry, 'published'), ...(category === undefined ? {} : { primaryCategory: category }) });
+}
+
+/** Parse an Atom response, matching IDs rather than relying on response order. */
+export function parseArxivFeed(xml: string, requestedIds: readonly string[]): Map<string, CitationMetadata> {
+  if (Array.isArray(requestedIds) === false || requestedIds.some((id) => isId(id) === false)) {
+    throw new TypeError('Valid arXiv identifiers are required.');
+  }
+  const feed = parseFeed(xml);
 
   const candidates = new Map<string, CitationMetadata>();
   for (const entry of children(feed, 'entry')) {
-    const url = text(entry, 'id');
-    if (/^https?:\/\/(?:www\.)?arxiv\.org\/api\/errors(?:[#/?]|$)/.test(url)) throw new CitationParseError();
-    const paper = parsePaperUrl(url);
-    if (paper?.source !== 'arxiv') continue;
-    const category = children(entry, 'primary_category', ARXIV)[0]?.getAttribute('term') ?? undefined;
-    const metadata = normalizeMetadata({ id: paper.id, title: text(entry, 'title'),
-      authors: children(entry, 'author').map((author) => text(author, 'name')),
-      published: text(entry, 'published'), ...(category === undefined ? {} : { primaryCategory: category }) });
+    const metadata = entryMetadata(entry);
     if (metadata !== undefined && candidates.has(metadata.id) === false) candidates.set(metadata.id, metadata);
   }
   const result = new Map<string, CitationMetadata>();
@@ -112,6 +125,41 @@ export function parseArxivFeed(xml: string, requestedIds: readonly string[]): Ma
     if (selected !== undefined) result.set(id, selected);
   }
   return result;
+}
+
+export interface ArxivSearchFeed {
+  papers: CitationMetadata[];
+  totalResults: number;
+  startIndex: number;
+  itemsPerPage: number;
+}
+
+function searchCount(feed: Element, name: string): number {
+  const value = text(feed, name, OPENSEARCH);
+  if (/^\d+$/.test(value) === false) throw new CitationParseError();
+  const count = Number(value);
+  if (Number.isSafeInteger(count) === false) throw new CitationParseError();
+  return count;
+}
+
+/** Search results retain API relevance order after validating pagination and each entry. */
+export function parseArxivSearchFeed(xml: string, expectedStart = 0): ArxivSearchFeed {
+  if (Number.isInteger(expectedStart) === false || expectedStart < 0 || expectedStart > 190 || expectedStart % 10 !== 0) {
+    throw new TypeError('A valid search page offset is required.');
+  }
+  const feed = parseFeed(xml);
+  const totalResults = searchCount(feed, 'totalResults');
+  const startIndex = searchCount(feed, 'startIndex');
+  const itemsPerPage = searchCount(feed, 'itemsPerPage');
+  const entries = children(feed, 'entry');
+  if (startIndex !== expectedStart || itemsPerPage > 10 || entries.length > itemsPerPage
+    || entries.length > Math.max(0, totalResults - startIndex)) throw new CitationParseError();
+  const candidates = new Map<string, CitationMetadata>();
+  for (const entry of entries) {
+    const metadata = entryMetadata(entry);
+    if (metadata !== undefined && candidates.has(metadata.id) === false) candidates.set(metadata.id, metadata);
+  }
+  return { papers: [...candidates.values()], totalResults, startIndex, itemsPerPage };
 }
 
 function markdownLabel(value: string): string {

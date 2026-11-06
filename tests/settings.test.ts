@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { beforeEach, test } from 'node:test';
-import { DEFAULT_PREFERENCES, getPreferences, normalizePreferences, savePreferences } from '../src/settings.ts';
+import {
+  DEFAULT_PREFERENCES, getPreferences, getToolbarLayout, normalizePreferences, savePreferences,
+  setToolbarMinimized, setToolbarPosition,
+} from '../src/settings.ts';
 
 let stored: Record<string, unknown>;
 
@@ -11,6 +14,7 @@ beforeEach(() => {
     storage: { local: {
       get: async () => structuredClone(stored),
       set: async (value: Record<string, unknown>) => { Object.assign(stored, structuredClone(value)); },
+      remove: async (key: string) => { delete stored[key]; },
     } },
   } as unknown as typeof chrome;
 });
@@ -90,4 +94,28 @@ test('invalid version settings recover current while retaining the other fields'
       format: 'pdf', openInNewTab: true, language: 'auto', version: 'current',
     });
   }
+});
+
+test('toolbar placement and compact mode survive simultaneous independent reading preference changes', async () => {
+  stored.preferences = { language: 'zh_CN', format: 'pdf' };
+  assert.deepEqual(await getToolbarLayout(), { minimized: false, position: null });
+  const position = { x: 0.75, y: 0 };
+  await Promise.all([setToolbarPosition(position), setToolbarMinimized(true), savePreferences({ version: 'latest' })]);
+  assert.deepEqual(await getToolbarLayout(), { minimized: true, position });
+  assert.deepEqual(await getPreferences(), { language: 'zh_CN', format: 'pdf', version: 'latest', openInNewTab: false });
+  await setToolbarPosition(null);
+  assert.deepEqual(await getToolbarLayout(), { minimized: true, position: null });
+  await setToolbarMinimized(false);
+  assert.deepEqual(Object.keys(stored), ['preferences']);
+});
+
+test('malformed saved layouts restore the default and invalid moves cannot replace a saved location', async () => {
+  for (const value of [false, 'top', { x: 0.5 }, { x: -1, y: 0 }, { x: 2, y: 0 }, { x: NaN, y: Infinity }]) {
+    stored.toolbarPosition = value;
+    stored.toolbarMinimized = 'yes';
+    assert.deepEqual(await getToolbarLayout(), { minimized: false, position: null });
+  }
+  await setToolbarPosition({ x: 0, y: 1 });
+  await assert.rejects(() => setToolbarPosition({ x: -1, y: 0 }), /Invalid toolbar position/);
+  assert.deepEqual((await getToolbarLayout()).position, { x: 0, y: 1 });
 });

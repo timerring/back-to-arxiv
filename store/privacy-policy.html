@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="How Back to arXiv handles paper references, optional arXiv metadata lookup, Markdown and BibTeX exports, preferences, and navigation.">
+  <meta name="description" content="How Back to arXiv handles paper references, optional arXiv search and metadata lookup, Markdown and BibTeX exports, preferences, and navigation.">
   <title>Back to arXiv — Privacy Policy</title>
   <style>
     :root { color-scheme: light; font-family: system-ui, sans-serif; color: #312a27; background: #faf8f4; }
@@ -18,25 +18,26 @@
 <body>
   <div class="brand">Back to arXiv</div>
   <h1>Privacy Policy</h1>
-  <p class="date">Effective date: November 5, 2026 · Extension version 0.8.0</p>
-  <p>Back to arXiv helps you open arXiv papers, organize references, and export reading lists. The batch organizer can optionally retrieve public paper metadata from arXiv and generate title-based Markdown and BibTeX. This policy describes the information used by these features.</p>
+  <p class="date">Effective date: November 6, 2026 · Extension version 0.9.0</p>
+  <p>Back to arXiv helps you open arXiv papers, organize references, and export reading lists. You can search by title or use selected text to find a paper. The batch organizer can optionally retrieve public paper metadata from arXiv and generate title-based Markdown and BibTeX. This policy describes the information used by these features.</p>
 
   <h2>Information used by the extension</h2>
   <ul>
     <li><strong>Current page and selected link URLs.</strong> On alphaXiv, the extension reads the page URL to identify a paper and display controls. Invoking the toolbar or shortcut reads the active tab URL; selecting a paper-link context-menu action reads that link's target. These values are processed in runtime memory for your requested action.</li>
     <li><strong>Entered references.</strong> You may type or paste URLs, identifiers, Markdown links, or arXiv DOIs into the popup or batch organizer. The full input is parsed locally to identify papers, duplicates, and invalid lines and generate outputs. Pasted labels are not used as paper metadata. Parsing and deduplication do not contact a DOI resolver or metadata service. Input and results stay in the relevant page's memory and clear on close or reload.</li>
-    <li><strong>Optional metadata lookup.</strong> Only after you click Fetch paper details and grant Chrome optional access to <code>https://export.arxiv.org/*</code> does the extension send selected, unique arXiv identifiers to <code>https://export.arxiv.org/api/query</code>. It does not send pasted labels or complete source URLs. The API response is processed in memory to obtain paper identifiers, titles, authors, dates, and classification for display and export. It is not executed as code. No lookup starts merely because you paste, edit, or change a setting.</li>
-    <li><strong>Preferences and pacing.</strong> Reading format, current/latest version, current/new-tab choice, and language are saved in <code>chrome.storage.local</code>. Follow browser reads Chrome's interface language for bundled translations. Batch version changes do not modify saved preferences. The background uses <code>chrome.storage.session</code> only for <code>metadataNextRequestAt</code>, a request-pacing timestamp. Identifiers, titles, authors, and response XML are not stored there.</li>
+    <li><strong>Search and selected text.</strong> When you choose Find selected text on arXiv, Chrome provides the selected text. A complete supported reference opens directly. For a title or keywords entered in the popup or chosen with the selection action, the results page receives the query through a local URL fragment and immediately removes it from the address. With optional API access, choosing Search sends the query terms to arXiv along with pagination options. When access has already been granted, the popup or selection search starts directly. The extension does not store queries or results. They clear when the tab reloads or closes.</li>
+    <li><strong>Optional batch metadata lookup.</strong> After you click Fetch paper details and grant Chrome optional access to <code>https://export.arxiv.org/*</code> does the extension send selected, unique arXiv identifiers to <code>https://export.arxiv.org/api/query</code>. It does not send pasted labels or complete source URLs. The API response is processed in memory to obtain paper identifiers, titles, authors, dates, and classification for display and export. It is not executed as code. No lookup starts merely because you paste, edit, or change a setting.</li>
+    <li><strong>Preferences and pacing.</strong> Reading format, current/latest version, current/new-tab choice, language, floating toolbar position, and minimized state are saved in <code>chrome.storage.local</code>. Follow browser reads Chrome's interface language for bundled translations. Batch version changes do not modify saved preferences. The background uses <code>chrome.storage.session</code> only for <code>metadataNextRequestAt</code>, a request-pacing timestamp. Identifiers, titles, authors, and response XML are not stored there.</li>
     <li><strong>Generated exports.</strong> Copy writes the requested link, Markdown list, or BibTeX to the clipboard. Download saves a requested <code>.md</code> or <code>.bib</code> file through the browser. Single-paper Markdown uses an identifier label. Batch Markdown may use fetched titles, with identifier fallback; BibTeX includes successfully fetched, version-matched papers only and uses their first-submission year. Generated BibTeX comes from Atom metadata rather than the arXiv BibTeX page. Invalid and duplicate rows are excluded. Export generation is local.</li>
   </ul>
-  <p>The extension does not access account details, webpage form contents, or existing clipboard contents, and it does not create a stored browsing-history log. Citation enrichment does not fetch paper PDFs or HTML full text. It does not connect to Obsidian or Zotero accounts or synchronize a library; those tools can receive standard exported files.</p>
+  <p>The extension only receives webpage selections when you choose the selection action. It does not scan form fields, read the clipboard, or create a stored browsing-history log. Citation enrichment does not fetch paper PDFs or HTML full text. It does not connect to Obsidian or Zotero accounts or synchronize a library; those tools can receive standard exported files.</p>
 
   <h2>Network requests and recipients</h2>
-  <p>Opening a paper sends an ordinary HTTPS request to <code>arxiv.org</code>. Optional metadata lookup sends identifiers to arXiv's API on <code>export.arxiv.org</code>. Metadata requests omit cookies and the referrer, but arXiv still receives the selected identifiers and ordinary network information such as the IP address and request headers. arXiv handles these requests under its own privacy practices. Browsing alphaXiv is likewise subject to that website's practices.</p>
-  <p>Metadata requests share one paced connection across extension workbenches. You can cancel retrieval; editing the input, changing its version, or closing the workbench also cancels pending work. Retry requests only unavailable papers. The extension contains no developer-operated data collection, analytics, or advertising service. All executable resources are bundled.</p>
+  <p>Opening a paper sends an ordinary HTTPS request to <code>arxiv.org</code>. Optional search sends query text, and batch metadata lookup sends identifiers to arXiv's API on <code>export.arxiv.org</code>. Metadata requests omit cookies and the referrer, but arXiv still receives the submitted query or selected identifiers and ordinary network information such as the IP address and request headers. arXiv handles these requests under its own privacy practices. Browsing alphaXiv is likewise subject to that website's practices.</p>
+  <p>Search and batch metadata requests share one paced connection. You can cancel retrieval; editing the input, changing its version, or closing the workbench also cancels pending work. Retry requests only unavailable papers. The extension contains no developer-operated data collection, analytics, or advertising service. All executable resources are bundled.</p>
 
   <h2>Retention and your controls</h2>
-  <p>Drafts, batch results, fetched metadata, and generated outputs remain in page memory and clear on close or reload; removing references prunes their page metadata. Local export remains available if optional arXiv access is denied or revoked. You can remove that host permission in Chrome's extension site-access settings. Chrome manages the permission grant separately from the extension's four saved reading preferences.</p>
+  <p>Drafts, batch results, fetched metadata, and generated outputs remain in page memory and clear on close or reload; removing references prunes their page metadata. Local export remains available if optional arXiv access is denied or revoked. You can remove that host permission in Chrome's extension site-access settings. Chrome manages the permission grant separately from the extension's saved reading and toolbar settings.</p>
   <p>The session pacing timestamp is not a paper history and clears with the extension session. Saved reading preferences remain until changed, cleared, or the extension is removed. Copied text follows the operating system's clipboard behavior. Downloaded Markdown and BibTeX files remain according to your browser and file-system controls and can be removed like other files. The extension does not manage browser or clipboard history.</p>
 
   <h2>Purpose and Limited Use</h2>
@@ -48,20 +49,21 @@
   <details lang="zh-CN">
     <summary>简体中文说明</summary>
     <h2>隐私政策</h2>
-    <p class="date">生效日期：2026 年 11 月 5 日 · 扩展版本 0.8.0</p>
-    <p>Back to arXiv 用于打开论文、整理引用和导出阅读清单。批量工作台还可按需从 arXiv 获取公开论文元数据，生成带标题的 Markdown 和 BibTeX。以下说明这些功能处理的信息。</p>
+    <p class="date">生效日期：2026 年 11 月 6 日 · 扩展版本 0.9.0</p>
+    <p>Back to arXiv 用于查找和打开论文、整理引用和导出阅读清单。批量工作台还可按需从 arXiv 获取公开论文元数据，生成带标题的 Markdown 和 BibTeX。以下说明这些功能处理的信息。</p>
     <h3>扩展处理的信息</h3>
     <p><strong>页面与链接网址：</strong>在 alphaXiv 读取当前网址来识别论文并显示控件；调用工具栏或快捷键时读取当前标签页网址；主动选择论文链接右键操作时读取该链接目标。这些值仅在运行时内存中用于请求的操作。</p>
     <p><strong>主动输入的引用：</strong>用户可在面板或批量工作台输入网址、编号、Markdown 链接与 arXiv DOI。完整输入在本地解析，用于识别论文、重复与错误行并生成导出。粘贴的标签不作为论文元数据。解析和去重不请求 DOI 解析器或元数据服务。输入和结果仅保留在相应页面内存，关闭或刷新后清空。</p>
-    <p><strong>可选元数据查询：</strong>只有点击获取论文信息，并在 Chrome 授予 <code>https://export.arxiv.org/*</code> 可选访问权限后，扩展才向 <code>https://export.arxiv.org/api/query</code> 发送选定且不重复的 arXiv 编号，不发送粘贴的标签或完整来源网址。API 响应在内存中解析，提取论文编号、标题、作者、日期及分类用于展示和导出，不作为代码执行。仅粘贴、编辑或切换设置不会查询。</p>
-    <p><strong>偏好与限速：</strong>阅读格式、当前／最新版本、当前／新标签页和语言偏好保存在 <code>chrome.storage.local</code>。跟随浏览器时读取 Chrome 界面语言来选择内置翻译。工作台版本选择不修改持久偏好。后台会话存储 <code>chrome.storage.session</code> 仅保存请求限速时间戳 <code>metadataNextRequestAt</code>，不保存论文编号、标题、作者或响应 XML。</p>
+    <p><strong>搜索和选中文字：</strong>选择“在 arXiv 中查找所选文字”时，Chrome 将选中的文字传给扩展。可识别的完整引用直接打开；输入标题或使用选中文字查找时，查询词通过本地结果页地址片段传入，进入页面后立即从地址中移除。经可选授权后，主动搜索会向 arXiv 发送查询词及分页参数。已有权限时，从弹窗或右键主动查找可直接查询。扩展不持久保存搜索词或结果，刷新或关闭页面后清空。</p>
+    <p><strong>可选的批量元数据查询：</strong>只有点击获取论文信息，并在 Chrome 授予 <code>https://export.arxiv.org/*</code> 可选访问权限后，扩展才向 <code>https://export.arxiv.org/api/query</code> 发送选定且不重复的 arXiv 编号，不发送粘贴的标签或完整来源网址。API 响应在内存中解析，提取论文编号、标题、作者、日期及分类用于展示和导出，不作为代码执行。仅粘贴、编辑或切换设置不会查询。</p>
+    <p><strong>偏好与限速：</strong>阅读格式、当前／最新版本、当前／新标签页、语言偏好、浮条位置和最小化状态保存在 <code>chrome.storage.local</code>。跟随浏览器时读取 Chrome 界面语言来选择内置翻译。工作台版本选择不修改持久偏好。后台会话存储 <code>chrome.storage.session</code> 仅保存请求限速时间戳 <code>metadataNextRequestAt</code>，不保存论文编号、标题、作者或响应 XML。</p>
     <p><strong>生成的导出：</strong>复制将主动请求的链接、Markdown 或 BibTeX 写入剪贴板；下载通过浏览器保存主动请求的 <code>.md</code> 或 <code>.bib</code> 文件。单篇 Markdown 使用编号标签，批量 Markdown 可使用已获取标题并对缺失项回退编号。BibTeX 只包含成功获取且版本匹配的论文，年份采用首次提交年份，由 Atom 元数据生成而非直接下载 arXiv BibTeX 页。错误与重复行不进入导出，生成过程在本地完成。</p>
-    <p>扩展不读取账户信息、网页表单或剪贴板已有内容，不保存浏览历史。引用增强不获取论文 PDF 或 HTML 全文，也不连接 Obsidian 或 Zotero 账号、不自动同步文献库；用户可将标准导出文件交给这些工具。</p>
+    <p>扩展仅在用户主动选择右键查找时接收选中文字，不扫描表单、不读取剪贴板现有内容，也不保存浏览历史。引用增强不获取论文 PDF 或 HTML 全文，也不连接 Obsidian 或 Zotero 账号、不自动同步文献库；用户可将标准导出文件交给这些工具。</p>
     <h3>网络请求与接收方</h3>
-    <p>打开论文时访问 <code>arxiv.org</code>。可选查询将编号发送到 <code>export.arxiv.org</code> 的官方 API。查询不携带 Cookie 或来源网址，但 arXiv 仍会收到选定编号、IP 地址和普通请求头，并按自身隐私实践处理。浏览 alphaXiv 同样受该网站的实践约束。</p>
-    <p>扩展各工作台共用一个限速连接。用户可以取消，编辑输入、切换版本或关闭工作台也会取消待处理请求；重试仅查询尚未获取的论文。扩展没有开发者运营的数据收集、分析统计或广告服务，执行资源均随安装包提供。</p>
+    <p>打开论文时访问 <code>arxiv.org</code>。按需搜索会将查询词、批量查询会将编号发送到 <code>export.arxiv.org</code> 的官方 API。查询不携带 Cookie 或来源网址，但 arXiv 仍会收到查询词或选定编号、IP 地址和普通请求头，并按自身隐私实践处理。浏览 alphaXiv 同样受该网站的实践约束。</p>
+    <p>搜索和批量查询共用一个限速连接。用户可以取消，编辑输入、切换版本或关闭工作台也会取消待处理请求；重试仅查询尚未获取的论文。扩展没有开发者运营的数据收集、分析统计或广告服务，执行资源均随安装包提供。</p>
     <h3>保存期限与控制</h3>
-    <p>草稿、批量结果、已获取元数据和生成内容仅在页面内存中使用，关闭或刷新后清空；移除引用时会清理相应页面元数据。拒绝或撤销可选 API 访问后，本地链接清单仍可导出。可在 Chrome 扩展站点访问设置中移除域名权限；Chrome 单独管理该授权，扩展自身仅持久保存四项阅读偏好。</p>
+    <p>草稿、批量结果、已获取元数据和生成内容仅在页面内存中使用，关闭或刷新后清空；移除引用时会清理相应页面元数据。拒绝或撤销可选 API 访问后，本地链接清单仍可导出。可在 Chrome 扩展站点访问设置中移除域名权限；Chrome 单独管理该授权，扩展自身持久保存阅读偏好和浮条布局。</p>
     <p>限速时间戳不是论文历史记录，随扩展会话清空。偏好保留到修改、清除或移除扩展。剪贴板内容由操作系统管理；下载的 Markdown 与 BibTeX 文件由浏览器和文件系统管理，可像其他文件一样删除。扩展不管理浏览器或剪贴板历史。</p>
     <h3>用途、有限使用与联系</h3>
     <p>通过 Chrome API 获得的信息仅用于已声明的论文跳转、引用整理、元数据查询与引用导出，遵守 Chrome Web Store 用户数据政策及 Limited Use 要求；不用于销售、广告、信用评估或贷款资格判断。政策问题可通过 <a href="https://github.com/timerring/back-to-arxiv/issues">GitHub Issues</a> 联系维护者；Issues 内容公开，私下联系可使用商店中提供的开发者联系方式。</p>

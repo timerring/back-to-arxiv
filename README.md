@@ -4,11 +4,11 @@ English | [简体中文](README.zh-CN.md)
 
 A lightweight Chrome extension that opens alphaXiv papers and pasted paper links or identifiers on arXiv. Choose Abstract, PDF, or HTML, and copy clean links or Markdown for your notes. Built with Manifest V3 and TypeScript, with preferences stored locally in your browser.
 
-Version 0.8.0 adds on-demand titles, authors, and generated BibTeX to the batch organizer. Export a title-based Markdown reading list for notes or a `.bib` file for a reference manager. The popup keeps its single organizer entry.
+Version 0.9.0 lets you search arXiv by title or selected text and move the floating controls out of the way. Minimize them to one button when you just want to open the current paper.
 
 ## Install in Chrome
 
-Requires **Node.js 22.12.0+** and **Chrome 120+**. Clone or download this repository, then run these commands from the project directory:
+For Chrome 120+, extract the versioned extension ZIP from the release, then follow the steps below starting at step 1. Select the extracted folder containing `manifest.json`. To build from source instead, use **Node.js 22.12.0+** and run the following commands in the project directory.
 
 ```sh
 npm ci
@@ -20,7 +20,7 @@ The build creates a `dist/` directory containing the unpacked extension.
 1. Open `chrome://extensions` in Chrome.
 2. Enable **Developer mode**.
 3. Click **Load unpacked**.
-4. Select the generated **dist** directory.
+4. Select the extracted extension folder or the generated **dist** directory.
 5. Pin **Back to arXiv** from Chrome's extensions menu.
 6. Open or refresh an alphaXiv paper. An **Open arXiv** button appears in the lower-right corner.
 
@@ -29,6 +29,8 @@ See Chrome's official guide to [loading an unpacked extension](https://developer
 ## Use
 
 - **Page button:** Open the current alphaXiv paper on arXiv. The arrow beside Open offers Abstract, PDF, or HTML for that action only. The Copy button copies its abstract-page link; its menu offers three link formats and Markdown.
+- **Move or minimize the page controls.** Drag the handle to position the toolbar. Choose **Minimize toolbar** on the page or enable **Minimize floating toolbar** in the popup to show a single arXiv button. Drag the button to move it, click to open the paper, or right-click to expand. The popup also restores the full toolbar or resets its position. Chrome remembers this layout across papers.
+- **Find a paper by title.** Enter a title or keywords in the popup and choose **Search arXiv**, or highlight text on a webpage and choose **Find selected text on arXiv** from the context menu. An exact supported reference opens directly. For a query, choose a match by title, authors, and first-submission year, then open Abstract, PDF, or HTML in a new tab.
 - **Toolbar popup:** Preview the paper identifier and destination URL, save your reading format, version, and tab preferences, or use the Open menu to choose a format just once.
 - **Paste a paper:** Enter a supported alphaXiv/arXiv URL, a modern or legacy arXiv identifier, `arXiv:1706.03762v3`, a single Markdown link, or an arXiv DOI in the popup. Preview updates as you type. Opening a manually entered paper always uses a new tab, keeping the source page open.
 - **Batch organizer:** Open the separate workspace from the popup. Paste one reference per line, review unique papers, duplicates, and invalid lines, then copy Markdown or download a `.md` file. Optionally fetch titles and authors from arXiv and export BibTeX. The popup remains focused on single-paper actions.
@@ -47,6 +49,8 @@ A nonempty input takes priority over the current page. Invalid input disables op
 
 **HTML (experimental)** opens `https://arxiv.org/html/<identifier>` using the selected version preference. Availability depends on arXiv's HTML support for that paper and version. You can switch to Abstract or PDF in the popup when you need another format. Read more in [arXiv's HTML documentation](https://info.arxiv.org/about/accessible_HTML.html).
 
+Search uses optional access to `export.arxiv.org`. On first use, click Search on the results page and approve access. Once granted, choosing search in the popup or context menu runs the query directly. Each page shows up to 10 results, with up to 200 available per query. Editing a query cancels pending work. Reloading or closing the tab clears it.
+
 ## Batch organizer
 
 Paste up to **500 nonblank lines** and **100,000 characters** into the organizer. Each nonblank line is one supported paper reference: a URL, identifier, arXiv DOI, or inline Markdown link. Markdown bullet (`-`, `*`, `+`) and numbered-list prefixes are accepted; blank lines are ignored. Paragraphs and multiple references on one line are marked invalid.
@@ -63,7 +67,7 @@ Invalid and duplicate lines remain visible for review and are excluded from expo
 
 ### Titles, authors, and BibTeX
 
-Click **Fetch paper details** to retrieve metadata from arXiv. On first use, Chrome asks for optional access to `https://export.arxiv.org/*`. Only this action sends the unique, selected arXiv identifiers to the official API; it does not send pasted labels or complete source URLs. Denying or revoking access leaves local parsing and link-list export available. There is no automatic lookup when pasting, editing, changing language, or switching version.
+Click **Fetch paper details** to retrieve metadata from arXiv. On first use, Chrome asks for optional access to `https://export.arxiv.org/*`. This organizer action sends the selected unique arXiv identifiers to the official API. Batch labels and source URLs stay local. Denying or revoking access leaves local parsing and link-list export available. There is no automatic lookup when pasting, editing, changing language, or switching version.
 
 Fetched titles and authors appear in the results. **Use titles in Markdown** replaces identifier labels with fetched titles; papers without a title retain their identifier labels. Markdown still exports every unique valid paper in source order:
 
@@ -129,6 +133,8 @@ Run `npm run test:memory` with the same browser environment variables for a sepa
 
 When running browser commands through Codex on macOS, use the approved execution context described in [AGENTS.md](AGENTS.md) from the initial launch. The restricted context on the development machine can cause Chrome to abort during application registration and show the system's **Reopen** prompt before loading the extension. Type checks, unit tests, builds, and packaging run in the workspace sandbox.
 
+Version 0.9.0 passed TypeScript checking, 154 unit tests, the production build, and Chrome extension integration tests. Mouse and touch drags, click after drag, compact mode, restoring the toolbar, resize, reload, title search, paging, cancellation, and the original citation workflows were exercised. A live arXiv search returned 10 parseable papers. The resource regression passed 500 in-page navigations and 40 popup cycles after warmup. Native Chrome host-permission dialogs are covered by the manual reviewer steps.
+
 Version 0.8.0 passed TypeScript checking, 113 unit tests, the production build, and Chrome 156 extension integration tests. Citation checks cover explicit retrieval, denied optional access, real service-worker requests with cookies/referrer omitted, title Markdown with identifier fallback, exact downloaded Markdown/BibTeX, missing-only retry, cancellation and stale responses, version changes, 50+1 request batching, pacing, and session-timestamp-only storage. CitationJS independently parses generated and downloaded BibTeX, checking title, authors, year, and URL. A direct live official API probe returned HTTP 200; the parser matched v1/v7 correctly, and generated BibTeX independently imported with eight authors and year 2017 for each. Desktop and 375px layouts were inspected. Native Chrome optional-host approval/revocation remains a manual check; the resource-lifecycle stress test has not been rerun for 0.8.0.
 
 CitationJS and XML test support are development-only and are not bundled into the extension.
@@ -155,7 +161,7 @@ In that 0.5.1 stress test, after 500 SPA transitions, 20 preference/menu rounds,
 | Paste `[Attention](https://arxiv.org/abs/1706.03762v3)` or `<https://arxiv.org/abs/1706.03762v3>` | Preview selects `1706.03762v3`; copying produces a clean arXiv link |
 | Paste `doi:10.48550/arXiv.1706.03762` or `https://doi.org/10.48550/arXiv.1706.03762` | Preview and copied links use unversioned `1706.03762` under either version preference |
 | Paste multiple Markdown links, surrounding prose, a journal DOI, or an arXiv DOI ending in `v3` | Opening and copying remain disabled |
-| Enter invalid text on a supported paper page | Opening and copying are disabled until the input is corrected or cleared |
+| Enter a malformed reference such as `arXiv:invalid` on a supported paper page | Opening and copying are disabled until the input is corrected or cleared |
 | Clear the input, or close and reopen the popup | The popup returns to the current page; entered text is cleared |
 | Choose Copy PDF or Copy HTML from either copy menu | The copied URL uses that format and selected version; the saved reading format stays unchanged |
 | Choose Copy Markdown link for `1706.03762v3` | Current version produces `[arXiv:1706.03762v3](https://arxiv.org/abs/1706.03762v3)`; Latest version removes `v3` from both parts |
@@ -184,13 +190,13 @@ Refresh existing alphaXiv tabs after installing or reloading the extension. If t
 
 Run `npm run package:store` to create the extension ZIP and the complete listing kit in `release/`. Packaging requires Node.js 22.12.0+ and the `zip` / `unzip` commands included with macOS.
 
-Upload `back-to-arxiv-0.8.0.zip` as the extension. The separate `back-to-arxiv-0.8.0-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
+Upload `back-to-arxiv-0.9.0.zip` as the extension. The separate `back-to-arxiv-0.9.0-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
 
 See [the submission guide](store/START-HERE.txt) for fields and assets. Use the public [privacy policy](https://timerring.com/back-to-arxiv/store/privacy-policy.html) in the Chrome Web Store's Privacy policy URL field. Confirm the publisher contact details before submitting. Support is available through [GitHub Issues](https://github.com/timerring/back-to-arxiv/issues).
 
 GitHub Pages publishes the policy directly from `store/privacy-policy.html` on `main`. Updating that file and pushing to `main` updates the live policy. The repository root's `.nojekyll` preserves the static HTML, and `index.html` points visitors to the policy.
 
-Use `npm run store:assets` to render the store graphics from their saved captures and layouts. The saved popup captures and graphics are refreshed for 0.8.0. After future UI changes, refresh the captures as described in the guide.
+Use `npm run store:assets` to render the store graphics from their saved captures and layouts. After future UI changes, refresh the captures as described in the guide.
 
 ## Project structure
 
@@ -201,6 +207,8 @@ public/batch.*         Separate batch-organizer HTML and styles
 public/_locales/       Chrome i18n messages and UI translations
 src/i18n.ts            UI language selection and message lookup
 src/paper.ts           Paper URL/identifier parsing, URL and Markdown generation
+src/search.ts          Search input, query and launch URL handling
+src/search-page.ts     Search results, pagination and cancellation
 src/batch.ts           Batch parsing, deduplication, and Markdown-list generation
 src/batch-page.ts      Batch-organizer interactions and export
 src/citations.ts       Atom metadata parsing and title/BibTeX generation
@@ -224,13 +232,13 @@ dist/                 Generated Chrome extension
 
 | Permission or scope | Purpose |
 | --- | --- |
-| `storage` | Save four reading preferences locally and a request-pacing timestamp in session storage |
+| `storage` | Save reading preferences and the floating toolbar layout locally and a request-pacing timestamp in session storage |
 | `activeTab` | Read the current paper URL when you invoke the extension or its shortcut |
 | `clipboardWrite` | Write a requested paper link, Markdown list, or generated BibTeX |
-| `contextMenus` | Add an action to supported paper links and read the clicked link’s target URL |
+| `contextMenus` | Open a chosen paper link or find a paper from text selected for the context-menu action |
 | The two alphaXiv HTTPS domains | Add page controls and follow navigation between papers |
-| Optional `https://export.arxiv.org/*` | Retrieve metadata only after you click Fetch and grant Chrome access |
+| Optional `https://export.arxiv.org/*` | Search by title or keywords, or fetch batch metadata, after optional Chrome authorization |
 
-URL parsing, deduplication, and export generation run in the browser. Current-page URLs, chosen context-menu link targets, pasted references, and fetched metadata are transient; drafts and metadata clear when their page closes or reloads. Four reading preferences remain in local storage. The only metadata-service session value is a pacing timestamp; no identifiers or responses are stored there.
+URL parsing, deduplication, and export generation run in the browser. Current-page URLs, chosen context-menu link targets, pasted references, and fetched metadata are transient; drafts and metadata clear when their page closes or reloads. Reading preferences, the toolbar position, and its minimized state are saved locally. The only metadata-service session value is a pacing timestamp; no identifiers or responses are stored there.
 
-Metadata retrieval is optional. After your Fetch click and Chrome permission grant, selected unique identifiers are sent to `https://export.arxiv.org/api/query`. Requests omit cookies and the referrer; arXiv still receives the identifiers and normal network information such as IP address and headers. It handles these requests under its own privacy practices. Pasted labels and complete source URLs are not sent. Markdown uses fetched title labels when selected, with identifier fallback; generated BibTeX includes fetched papers only. Copy and file download require your action. Version 0.8 keeps the four required permissions and adds only the optional API host. Executable resources remain bundled.
+Metadata retrieval is optional. After your Fetch click and Chrome permission grant, selected unique identifiers are sent to `https://export.arxiv.org/api/query`. Requests omit cookies and the referrer; arXiv still receives the identifiers and normal network information such as IP address and headers. It handles these requests under its own privacy practices. Pasted labels and complete source URLs are not sent. Markdown uses fetched title labels when selected, with identifier fallback; generated BibTeX includes fetched papers only. Copy and file download require your action. Search also uses the optional API host. Choosing Search sends the query text or selected words and the requested page offset. Query text travels to the extension results page in a fragment cleared on entry. Queries and results stay in that tab’s memory and clear on reload or close. Executable resources remain bundled.

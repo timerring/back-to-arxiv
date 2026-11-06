@@ -1,6 +1,10 @@
-import { buildArxivUrl, buildMarkdownLink, getPaperId, isPaperVersion, isReadingFormat, parsePaperInput, parsePaperUrl, type ReadingFormat } from './paper';
+import { buildArxivUrl, buildMarkdownLink, getPaperId, isPaperVersion, isReadingFormat, parsePaperUrl, type ReadingFormat } from './paper';
+import { classifyPaperEntry } from './search';
 import { isLanguagePreference, localize, resolveLocale, translate, type LanguagePreference, type MessageKey } from './i18n';
-import { getPreferences, normalizePreferences, savePreferences } from './settings';
+import {
+  getPreferences, getToolbarLayout, normalizePreferences, normalizeToolbarPosition,
+  savePreferences, setToolbarMinimized, setToolbarPosition, type ToolbarLayout,
+} from './settings';
 
 type Preferences = Awaited<ReturnType<typeof getPreferences>>;
 type Paper = NonNullable<ReturnType<typeof parsePaperUrl>>;
@@ -22,6 +26,8 @@ const formatFieldset = element<HTMLFieldSetElement>('format-fieldset');
 const formatRadios = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="format"]'));
 const htmlNote = element<HTMLParagraphElement>('html-note');
 const newTabCheckbox = element<HTMLInputElement>('new-tab');
+const minimizedCheckbox = element<HTMLInputElement>('toolbar-minimized');
+const resetPositionButton = element<HTMLButtonElement>('reset-toolbar-position');
 const languageSelect = element<HTMLSelectElement>('language');
 const versionSelect = element<HTMLSelectElement>('paper-version');
 const status = element<HTMLParagraphElement>('status');
@@ -39,7 +45,9 @@ let activeTabId: number | undefined;
 let activeTabUrl = '';
 let currentPagePaper: Paper | null = null;
 let paper: Paper | null = null;
+let searchQuery: string | null = null;
 let preferences: Preferences | null = null;
+let toolbarLayout: ToolbarLayout | null = null;
 let saving = false;
 let opening = false;
 let copying = false;
@@ -50,10 +58,14 @@ let saveQueue: Promise<void> = Promise.resolve();
 function language(): LanguagePreference { return preferences?.language ?? 'en'; }
 function t(key: MessageKey): string { return translate(key, language()); }
 function hasInput(): boolean { return paperInput.value.trim().length > 0; }
-function selectPaper(): void { paper = hasInput() ? parsePaperInput(paperInput.value) : currentPagePaper; }
+function selectPaper(): void {
+  const entry = hasInput() ? classifyPaperEntry(paperInput.value) : null;
+  paper = entry === null ? currentPagePaper : entry.kind === 'paper' ? entry.paper : null;
+  searchQuery = entry?.kind === 'search' ? entry.query : null;
+}
 
 function renderStatus(): void {
-  const visibleMessage: StatusMessage = hasInput() && paper === null
+  const visibleMessage: StatusMessage = hasInput() && paper === null && searchQuery === null
     ? { key: 'invalidPaperInput', kind: 'error' }
     : statusMessage;
   status.textContent = 'key' in visibleMessage ? t(visibleMessage.key) : visibleMessage.text;
@@ -90,23 +102,30 @@ function renderControls(): void {
   selectPaper();
   localize(document, language());
   document.documentElement.lang = resolveLocale(language()).replace('_', '-');
-  const unavailable = paper === null || preferences === null || saving || opening || copying;
+  const searching = searchQuery !== null;
+  const unavailable = (paper === null && searching === false) || preferences === null || saving || opening || copying;
   openButton.disabled = unavailable || (hasInput() === false && activeTabId === undefined);
-  copyButton.disabled = unavailable;
-  menus.open.toggle.disabled = openButton.disabled;
+  copyButton.disabled = unavailable || searching;
+  menus.open.toggle.disabled = openButton.disabled || searching;
   menus.copy.toggle.disabled = copyButton.disabled;
+  menus.open.toggle.hidden = searching;
+  menus.open.container.classList.toggle('search-actions', searching);
+  menus.copy.container.hidden = searching;
   if (menus.open.toggle.disabled) closeMenu('open');
   if (menus.copy.toggle.disabled) closeMenu('copy');
   formatFieldset.disabled = preferences === null || saving || opening || copying;
   newTabCheckbox.disabled = preferences === null || saving || opening || copying || hasInput();
+  minimizedCheckbox.disabled = toolbarLayout === null;
+  minimizedCheckbox.checked = toolbarLayout?.minimized === true;
+  resetPositionButton.hidden = !toolbarLayout?.position;
   languageSelect.disabled = preferences === null || saving || opening || copying;
   versionSelect.disabled = preferences === null || saving || opening || copying;
   paperInput.disabled = opening || copying;
   paperInput.placeholder = t('paperInputPlaceholder');
-  paperInput.setAttribute('aria-invalid', String(hasInput() && paper === null));
+  paperInput.setAttribute('aria-invalid', String(hasInput() && paper === null && searching === false));
   currentPageButton.hidden = paperInput.value.length === 0;
   currentPageButton.disabled = opening || copying;
-  element('open-label').textContent = t(opening ? 'opening' : 'openArxiv');
+  element('open-label').textContent = t(opening ? 'opening' : searching ? 'searchArxiv' : 'openArxiv');
   element('shortcut').textContent = shortcut || t('shortcutUnset');
   if (preferences !== null) {
     for (const radio of formatRadios) radio.checked = radio.value === preferences.format;
@@ -124,13 +143,20 @@ function renderPaper(): void {
   const source = element('paper-source');
   const note = element('paper-note');
   const manual = hasInput();
+  element('paper-label').textContent = t(searchQuery !== null ? 'searchQueryLabel' : 'currentPaper');
   paperId.closest<HTMLElement>('.paper-card')!.dataset.empty = String(paper === null);
+  paperId.closest<HTMLElement>('.paper-card')!.dataset.search = String(searchQuery !== null);
   source.dataset.ready = String(paper !== null);
   if (paper !== null) {
     paperId.textContent = getPaperId(paper, preferences?.version ?? 'current');
     source.textContent = t(manual ? 'inputSource' : paper.source === 'alphaxiv' ? 'sourceAlphaXiv' : 'sourceArxiv');
     note.textContent = buildArxivUrl(paper, preferences?.format ?? 'abs', preferences?.version ?? 'current').replace('https://', '');
     note.title = t(preferences?.version === 'latest' ? 'latestVersionNote' : 'versionNote');
+  } else if (searchQuery !== null) {
+    paperId.textContent = searchQuery;
+    source.textContent = t('searchInputSource');
+    note.textContent = t('searchInputNote');
+    note.removeAttribute('title');
   } else {
     paperId.textContent = t(manual ? 'invalidInputHeading' : 'emptyPaper');
     source.textContent = t(manual ? 'inputSource' : 'waitingPaper');
@@ -190,6 +216,23 @@ for (const radio of formatRadios) {
   });
 }
 newTabCheckbox.addEventListener('change', () => { void persistPreferences({ openInNewTab: newTabCheckbox.checked }); });
+minimizedCheckbox.addEventListener('change', () => {
+  const minimized = minimizedCheckbox.checked;
+  if (!toolbarLayout) return;
+  toolbarLayout.minimized = minimized;
+  void setToolbarMinimized(minimized).then(() => showStatus('toolbarLayoutSaved', 'success')).catch(reloadToolbarAfterSaveFailure);
+});
+resetPositionButton.addEventListener('click', () => {
+  void setToolbarPosition(null).then(() => {
+    if (document.activeElement === document.body || document.activeElement === resetPositionButton) minimizedCheckbox.focus();
+    showStatus('toolbarLayoutSaved', 'success');
+  }).catch(reloadToolbarAfterSaveFailure);
+});
+async function reloadToolbarAfterSaveFailure(): Promise<void> {
+  try { toolbarLayout = await getToolbarLayout(); } catch { toolbarLayout = null; }
+  showStatus('saveFailed', 'error');
+  renderControls();
+}
 languageSelect.addEventListener('change', () => {
   if (isLanguagePreference(languageSelect.value)) void persistPreferences({ language: languageSelect.value });
 });
@@ -200,7 +243,8 @@ versionSelect.addEventListener('change', () => {
 function updateInput(): void {
   closeMenus();
   selectPaper();
-  showStatus(hasInput() ? (paper === null ? 'invalidPaperInput' : 'inputNewTabNote') : 'storageNote', hasInput() && paper === null ? 'error' : 'neutral');
+  const invalid = hasInput() && paper === null && searchQuery === null;
+  showStatus(searchQuery !== null ? 'searchNewTabNote' : hasInput() ? (invalid ? 'invalidPaperInput' : 'inputNewTabNote') : 'storageNote', invalid ? 'error' : 'neutral');
   renderControls();
 }
 paperInput.addEventListener('input', updateInput);
@@ -259,8 +303,12 @@ document.addEventListener('keydown', (event) => {
 
 async function openPaper(format?: ReadingFormat): Promise<void> {
   selectPaper();
-  if (paper === null || preferences === null || opening || copying || saving || (hasInput() === false && activeTabId === undefined)) return;
-  const request = hasInput()
+  if ((paper === null && searchQuery === null) || preferences === null || opening || copying || saving || (hasInput() === false && activeTabId === undefined)) return;
+  if (format && searchQuery !== null) return;
+  const searching = searchQuery !== null;
+  const request = searching
+    ? { type: 'OPEN_ARXIV_SEARCH', query: searchQuery, ...(activeTabId === undefined ? {} : { tabId: activeTabId }) }
+    : hasInput()
     ? { type: 'OPEN_INPUT_ARXIV', input: paperInput.value, ...(activeTabId === undefined ? {} : { tabId: activeTabId }), ...(format ? { format } : {}) }
     : { type: 'OPEN_ARXIV', tabId: activeTabId, ...(format ? { format } : {}) };
   closeMenus();
@@ -271,9 +319,9 @@ async function openPaper(format?: ReadingFormat): Promise<void> {
     const response: { ok?: boolean; error?: string } | undefined = await chrome.runtime.sendMessage(request);
     if (response?.ok === true) window.close();
     else if (response?.error) statusMessage = { text: response.error, kind: 'error' };
-    else showStatus('openFailed', 'error');
+    else showStatus(searching ? 'searchOpenFailed' : 'openFailed', 'error');
   } catch {
-    showStatus('openFailed', 'error');
+    showStatus(searching ? 'searchOpenFailed' : 'openFailed', 'error');
   } finally {
     opening = false;
     renderControls();
@@ -329,7 +377,13 @@ chrome.tabs.onUpdated.addListener((tabId, _changeInfo, tab) => {
   if (tabId === activeTabId) updateTab(tab);
 });
 chrome.storage.onChanged.addListener((changes, area) => {
-  if (area === 'local' && changes.preferences && saving === false) {
+  if (area !== 'local') return;
+  if (toolbarLayout && (changes.toolbarMinimized || changes.toolbarPosition)) {
+    if (changes.toolbarMinimized) toolbarLayout.minimized = changes.toolbarMinimized.newValue === true;
+    if (changes.toolbarPosition) toolbarLayout.position = normalizeToolbarPosition(changes.toolbarPosition.newValue);
+    renderControls();
+  }
+  if (changes.preferences && saving === false) {
     preferences = normalizePreferences(changes.preferences.newValue);
     closeMenus();
     renderControls();
@@ -337,9 +391,11 @@ chrome.storage.onChanged.addListener((changes, area) => {
 });
 
 async function initialize(): Promise<void> {
-  const [preferenceResult, tabResult, shortcutResult] = await Promise.allSettled([
-    getPreferences(), chrome.tabs.query({ active: true, currentWindow: true }), chrome.commands.getAll(),
+  const [preferenceResult, tabResult, shortcutResult, layoutResult] = await Promise.allSettled([
+    getPreferences(), chrome.tabs.query({ active: true, currentWindow: true }), chrome.commands.getAll(), getToolbarLayout(),
   ]);
+  if (layoutResult.status === 'fulfilled') toolbarLayout = layoutResult.value;
+  else showStatus('loadPreferencesFailed', 'error');
   if (preferenceResult.status === 'fulfilled') preferences = preferenceResult.value;
   else showStatus('loadPreferencesFailed', 'error');
   if (tabResult.status === 'fulfilled' && tabResult.value[0] !== undefined) updateTab(tabResult.value[0]);

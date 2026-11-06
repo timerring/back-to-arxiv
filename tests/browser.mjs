@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright';
+import { runSearchChecks, runToolbarChecks } from './quick-entry-browser.mjs';
 import { runBatchChecks } from './batch-browser.mjs';
 import { runCitationChecks } from './citation-browser.mjs';
 
@@ -66,10 +67,10 @@ async function readClipboard(paper) {
 
 async function assertContextMenuRegistered(worker) {
   assert.equal(await worker.evaluate(() => chrome.contextMenus.onClicked.hasListeners()), true);
-  await worker.evaluate(() => new Promise((resolve, reject) => {
+  for (const id of ['back-to-arxiv-open-link', 'back-to-arxiv-find-selection']) await worker.evaluate((menuId) => new Promise((resolve, reject) => {
     let attempts = 0;
     function checkRegistration() {
-      chrome.contextMenus.update('back-to-arxiv-open-link', {}, () => {
+      chrome.contextMenus.update(menuId, {}, () => {
         const error = chrome.runtime.lastError?.message;
         if (error && ++attempts < 20) setTimeout(checkRegistration, 50);
         else if (error) reject(new Error(error));
@@ -77,7 +78,7 @@ async function assertContextMenuRegistered(worker) {
       });
     }
     checkRegistration();
-  }));
+  }), id);
 }
 
 async function openPopup(context, paperPage, extensionId) {
@@ -462,7 +463,7 @@ try {
   await paper.goto('https://www.alphaxiv.org/abs/1706.03762v3');
   await waitForLink(paper, 'https://arxiv.org/abs/1706.03762v3');
   popup = await openPopup(context, paper, extensionId);
-  await popup.locator('#paper-input').fill('not a paper');
+  await popup.locator('#paper-input').fill('arXiv:invalid');
   for (const id of ['open-paper', 'open-menu-toggle', 'copy-link', 'copy-menu-toggle']) assert.equal(await popup.locator(`#${id}`).isDisabled(), true);
   assert.equal(await popup.locator('#paper-input').getAttribute('aria-invalid'), 'true');
   await popup.locator('#paper-input').fill('arXiv:2301.12345v2');
@@ -496,7 +497,7 @@ try {
   await popup.locator('#language').selectOption('zh_CN');
   await popup.waitForFunction((message) => document.getElementById('status')?.textContent === message, zh.savedPreferences.message);
   await assertPopupFits(popup);
-  await popup.locator('#paper-input').fill('invalid paper reference');
+  await popup.locator('#paper-input').fill('arXiv:invalid');
   await assertPopupFits(popup);
   assert.equal(await popup.locator('#status').innerText(), zh.invalidPaperInput.message);
   await popup.locator('#paper-input').fill('hep-th/9901001v2');
@@ -507,7 +508,7 @@ try {
   await popup.locator('#copy-markdown').press('Escape');
   await popup.locator('#language').selectOption('en');
   await popup.waitForFunction(() => document.getElementById('language')?.disabled === false);
-  await popup.locator('#paper-input').fill('invalid paper reference');
+  await popup.locator('#paper-input').fill('arXiv:invalid');
   await assertPopupFits(popup);
   assert.equal(await popup.locator('#status').innerText(), en.invalidPaperInput.message);
   for (const input of [
@@ -582,6 +583,8 @@ try {
   assert.equal(paper.url(), 'https://example.org/');
   await runBatchChecks({ context, worker, extensionId, paper, openPopup, assertPopupFits, output, en, zh, readClipboard });
   await runCitationChecks({ context, worker, extensionId, paper, output, en, zh, readClipboard });
+  await runSearchChecks({ context, worker, extensionId, paper, openPopup, output, en, zh });
+  await runToolbarChecks({ context, worker, extensionId, paper, openPopup, output, assertPopupFits });
   assert.deepEqual(browserErrors, []);
   console.log('PASS: from unrelated pages, links/IDs/DOIs/Markdown support preview, copy and real new-tab navigation; invalid references stay disabled, input stays in memory and both languages fit Chrome.');
   console.log(`Browser integration passed. Screenshots: ${output}`);

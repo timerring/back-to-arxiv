@@ -185,7 +185,7 @@ async function exercisePopup(extensionId, whileOpen) {
     await popup.locator('#open-abs').press('Escape');
     await popup.locator('#copy-menu-toggle').click();
     await popup.locator('#copy-markdown').press('Escape');
-    await popup.locator('#paper-input').fill('invalid paper input');
+    await popup.locator('#paper-input').fill('arXiv:invalid');
     assert.equal(await popup.locator('#open-paper').isDisabled(), true);
     await popup.locator('#use-current-page').click();
     if (whileOpen) await whileOpen();

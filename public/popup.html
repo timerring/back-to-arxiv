@@ -24,12 +24,12 @@
       </header>
 
       <section class="paper-card" aria-labelledby="paper-label">
-        <label class="sr-only" for="paper-input" data-i18n="paperInputLabel">Paste a paper link, arXiv ID, DOI or Markdown link</label>
+        <label class="sr-only" for="paper-input" data-i18n="paperInputLabel">Paper link, arXiv ID, title or keywords</label>
         <div class="paper-input-row">
-          <input id="paper-input" type="text" placeholder="Link, arXiv ID, DOI or Markdown" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-describedby="paper-input-help status" aria-invalid="false" data-i18n-title="paperInputHelp" />
+          <input id="paper-input" type="text" placeholder="Link, arXiv ID, title or keywords" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go" aria-describedby="paper-input-help status" aria-invalid="false" data-i18n-title="paperInputHelp" />
           <button id="use-current-page" type="button" data-i18n="useCurrentPage" hidden>Use current page</button>
         </div>
-        <p id="paper-input-help" class="sr-only" data-i18n="paperInputHelp">Paste one paper reference. arXiv DOIs use 10.48550/arXiv.ID and open the latest version.</p>
+        <p id="paper-input-help" class="sr-only" data-i18n="paperInputHelp">Paste a paper link, ID, arXiv DOI or Markdown link to open it directly. Enter a title or keywords to search.</p>
         <div class="paper-meta">
           <span id="paper-label" data-i18n="currentPaper">Current paper</span>
           <span id="paper-source" class="source" data-i18n="identifyingSource">Reading page</span>
@@ -79,7 +79,7 @@
             <label><input id="format-html" type="radio" name="format" value="html" aria-label="HTML (experimental)" data-i18n-aria-label="formatHtml" aria-describedby="html-note" /><span>HTML<small data-i18n="formatExperimental">(experimental)</small></span></label>
           </div>
         </fieldset>
-        <p id="html-note" class="format-note" data-i18n="htmlNote" hidden>HTML is an experimental arXiv format. Availability depends on the paper version. Choose Abstract or PDF for another format.</p>
+        <p id="html-note" class="format-note" data-i18n="htmlNote" hidden>Only some paper versions have HTML.</p>
         <div class="select-row version-row">
           <label for="paper-version" data-i18n="paperVersion">Paper version</label>
           <select id="paper-version" disabled>
@@ -91,6 +91,13 @@
           <span data-i18n="openInNewTab">Open in a new tab</span>
           <span class="switch"><input id="new-tab" type="checkbox" disabled /><span class="switch-track" aria-hidden="true"></span></span>
         </label>
+        <div class="toolbar-row">
+          <label class="toggle-row" for="toolbar-minimized">
+            <span data-i18n="compactToolbar">Minimize floating toolbar</span>
+            <span class="switch"><input id="toolbar-minimized" type="checkbox" disabled /><span class="switch-track" aria-hidden="true"></span></span>
+          </label>
+          <button id="reset-toolbar-position" class="text-button" type="button" data-i18n="resetToolbarPosition" hidden>Reset position</button>
+        </div>
         <div class="select-row language-row">
           <label for="language" data-i18n="language">Language</label>
           <select id="language" disabled>

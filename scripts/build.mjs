@@ -17,6 +17,7 @@ await build({
     content: 'src/content.ts',
     popup: 'src/popup.ts',
     batch: 'src/batch-page.ts',
+    search: 'src/search-page.ts',
   },
   bundle: true,
   outdir,

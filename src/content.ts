@@ -1,13 +1,14 @@
 import { buildArxivUrl, buildMarkdownLink, getPaperId, isReadingFormat, parsePaperUrl, type Paper, type ReadingFormat } from './paper';
 import { formatLabel, localize, resolveLocale, translate, type MessageKey } from './i18n';
-import { DEFAULT_PREFERENCES, getPreferences, normalizePreferences, type Preferences } from './settings';
+import { DEFAULT_PREFERENCES, getPreferences, getToolbarLayout, normalizePreferences, normalizeToolbarPosition, setToolbarMinimized, type Preferences } from './settings';
+import { alignDockPanel, attachDockMovement } from './toolbar-layout';
 
 const host = document.createElement('div');
 host.id = 'back-to-arxiv-root';
 const shadow = host.attachShadow({ mode: 'open' });
 shadow.innerHTML = `
   <style>
-    :host { all: initial; position: fixed; right: 24px; bottom: 24px; z-index: 2147483647; color-scheme: light; }
+    :host { all: initial; position: fixed; width: max-content; right: 24px; bottom: 24px; z-index: 2147483647; color-scheme: light; }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
     .dock { display: flex; align-items: center; max-width: calc(100vw - 32px); padding: 5px; background: #fffdf8; border: 1px solid #e4dcd2; border-radius: 15px; box-shadow: 0 5px 24px #30241d20, 0 1px 3px #30241d10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -22,6 +23,15 @@ shadow.innerHTML = `
     button:hover { background: #f2eae0; color: #933c35; }
     button:disabled { opacity: .5; cursor: default; }
     .menu-toggle { width: 28px; }
+    #dock-grip, #dock-minimize { width: 24px; }
+    #dock-grip { cursor: grab; color: #927d71; }
+    #dock-grip, .open-link { touch-action: none; user-select: none; }
+    :host([data-dragging]) #dock-grip, :host([data-dragging]) .open-link { cursor: grabbing; }
+    .compact-name { display: none; }
+    :host([data-minimized]) .dock { padding: 0; border: 0; border-radius: 10px; }
+    :host([data-minimized]) .open-link { min-height: 40px; gap: 6px; padding: 0 12px; border-radius: 10px; }
+    :host([data-minimized]) .compact-name { display: inline; font-size: 13px; font-weight: 650; }
+    :host([data-minimized]) .words, :host([data-minimized]) .dock button { display: none; }
     .open-toggle { align-self: stretch; height: auto; min-height: 44px; border-left: 1px solid #fffaf32b; border-radius: 0 10px 10px 0; background: #933c35; color: #fffaf3; }
     a:focus-visible, button:focus-visible { outline: 3px solid #ba7864; outline-offset: 3px; }
     .action-menu { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 1; width: 250px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 112px); overflow-y: auto; padding: 5px; border: 1px solid #e4dcd2; border-radius: 10px; background: #fffdf8; box-shadow: 0 5px 20px #30241d24; }
@@ -34,10 +44,13 @@ shadow.innerHTML = `
     @media (prefers-reduced-motion: reduce) { a { transition: none; } }
   </style>
   <div class="dock" role="group" aria-label="Back to arXiv" data-i18n-aria-label="extName">
+    <button id="dock-grip" type="button" data-i18n-title="dockDrag" data-i18n-aria-label="dockDrag">
+      <svg width="10" height="18" viewBox="0 0 10 18" fill="currentColor" aria-hidden="true"><circle cx="3" cy="4" r="1.3"/><circle cx="7" cy="4" r="1.3"/><circle cx="3" cy="9" r="1.3"/><circle cx="7" cy="9" r="1.3"/><circle cx="3" cy="14" r="1.3"/><circle cx="7" cy="14" r="1.3"/></svg>
+    </button>
     <div class="open-actions">
       <a id="open-paper" class="open-link" aria-label="Open arXiv" data-i18n-aria-label="openArxiv">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m10 5-7 7 7 7M3 12h18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <span class="words"><span class="label" data-i18n="openArxiv">Open arXiv</span><span class="detail"></span></span>
+        <span class="words"><span class="label" data-i18n="openArxiv">Open arXiv</span><span class="detail"></span></span><span class="compact-name">arXiv</span>
       </a>
       <button id="open-menu-toggle" class="menu-toggle open-toggle" type="button" aria-label="Open once in another format" data-i18n-aria-label="openFormats" aria-haspopup="menu" aria-controls="open-menu" aria-expanded="false">
         <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 12 4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -48,6 +61,9 @@ shadow.innerHTML = `
     </button>
     <button id="copy-menu-toggle" class="menu-toggle" type="button" aria-label="More copy formats" data-i18n-aria-label="copyFormats" aria-haspopup="menu" aria-controls="copy-menu" aria-expanded="false">
       <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 12 4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button id="dock-minimize" type="button" data-i18n-title="dockMinimize" data-i18n-aria-label="dockMinimize">
+      <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 10h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
     </button>
   </div>
   <div id="open-menu" class="action-menu" role="menu" aria-label="Open once in another format" data-i18n-aria-label="openFormatMenu" hidden>
@@ -69,6 +85,8 @@ const openFormatLinks = Array.from(shadow.querySelectorAll<HTMLAnchorElement>('[
 const detail = shadow.querySelector<HTMLSpanElement>('.detail')!;
 const copyButton = shadow.querySelector<HTMLButtonElement>('#copy-link')!;
 const status = shadow.querySelector<HTMLDivElement>('.status')!;
+const grip = shadow.querySelector<HTMLButtonElement>('#dock-grip')!;
+const minimize = shadow.querySelector<HTMLButtonElement>('#dock-minimize')!;
 
 interface ActionMenu {
   toggle: HTMLButtonElement;
@@ -94,6 +112,48 @@ let lastUrl = '';
 let statusTimer: ReturnType<typeof setTimeout> | undefined;
 let statusMessage: MessageKey | null = null;
 let copying = false;
+let minimized = false;
+const movement = attachDockMovement(host, grip, openLink, () => {
+  closeMenus();
+  clearStatus();
+}, () => {
+  for (const menu of menus) if (!menu.panel.hidden) alignDockPanel(host, menu.panel);
+  if (status.textContent) alignDockPanel(host, status);
+});
+
+function applyMinimized(value: boolean): void {
+  if (minimized !== value) {
+    closeMenus();
+    clearStatus();
+  }
+  minimized = value;
+  host.toggleAttribute('data-minimized', value);
+  render();
+}
+
+async function changeMode(value: boolean): Promise<void> {
+  try {
+    await setToolbarMinimized(value);
+    applyMinimized(value);
+    (value ? openLink : minimize).focus();
+  } catch (error) {
+    console.info('Back to arXiv: could not save toolbar mode', error);
+  }
+}
+
+minimize.addEventListener('click', (event) => { if (event.isTrusted) void changeMode(true); });
+openLink.addEventListener('contextmenu', (event) => {
+  if (!event.isTrusted || !minimized) return;
+  event.preventDefault();
+  void changeMode(false);
+});
+openLink.addEventListener('keydown', (event) => {
+  if (event.isTrusted && minimized && (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10'))) {
+    event.preventDefault();
+    event.stopPropagation();
+    void changeMode(false);
+  }
+});
 
 type CopyFormat = ReadingFormat | 'markdown';
 
@@ -108,6 +168,7 @@ function announce(message: MessageKey): void {
   clearStatus();
   statusMessage = message;
   status.textContent = translate(message, preferences.language);
+  alignDockPanel(host, status);
   statusTimer = setTimeout(clearStatus, 2600);
 }
 
@@ -140,10 +201,12 @@ function render(): void {
   }
   const label = formatLabel(preferences.format, preferences.language);
   openLink.title = translate(preferences.openInNewTab ? 'dockOpenNew' : 'dockOpenCurrent', preferences.language, [label]);
+  if (minimized) openLink.title = translate('dockCompactHint', preferences.language);
   detail.textContent = `${getPaperId(currentPaper, preferences.version)} · ${label}${preferences.version === 'latest' ? ` · ${translate('versionLatest', preferences.language)}` : ''}`;
   copyButton.disabled = copying;
   copyMenu.toggle.disabled = copying;
   if (!host.isConnected) document.documentElement.append(host);
+  movement.refresh();
 }
 
 function closeMenu(menu: ActionMenu, restoreFocus = false): void {
@@ -162,6 +225,7 @@ function showMenu(menu: ActionMenu, last = false): void {
   closeMenus();
   clearStatus();
   menu.panel.hidden = false;
+  alignDockPanel(host, menu.panel);
   menu.toggle.setAttribute('aria-expanded', 'true');
   menu.items[last ? menu.items.length - 1 : 0]?.focus();
 }
@@ -272,14 +336,18 @@ for (const item of copyMenu.items) {
 }
 
 async function start(): Promise<void> {
-  preferences = await getPreferences();
-  render();
+  const [initialPreferences, layout] = await Promise.all([getPreferences(), getToolbarLayout()]);
+  preferences = initialPreferences;
+  movement.setPosition(layout.position);
+  applyMinimized(layout.minimized);
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && changes.preferences) {
       preferences = normalizePreferences(changes.preferences.newValue);
       render();
     }
+    if (area === 'local' && changes.toolbarMinimized) applyMinimized(changes.toolbarMinimized.newValue === true);
+    if (area === 'local' && changes.toolbarPosition) movement.setPosition(normalizeToolbarPosition(changes.toolbarPosition.newValue));
   });
 
   // Browser navigation events also cover pushState/replaceState in alphaXiv's SPA.

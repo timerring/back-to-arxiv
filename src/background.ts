@@ -2,10 +2,12 @@ import { openPaperTab } from './navigation';
 import { registerContextMenu } from './context-menu';
 import { handleOpenMessage } from './messages';
 import { cancelMetadataTab, handleMetadataMessage } from './metadata-service';
+import { handleSearchOpenMessage } from './search-navigation';
 
 registerContextMenu();
 
 chrome.runtime.onMessage.addListener(handleOpenMessage);
+chrome.runtime.onMessage.addListener(handleSearchOpenMessage);
 chrome.runtime.onMessage.addListener(handleMetadataMessage);
 chrome.tabs.onRemoved.addListener(cancelMetadataTab);
 

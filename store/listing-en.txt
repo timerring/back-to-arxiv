@@ -7,14 +7,20 @@ Default listing language
 English
 
 Version
-0.8.0
+0.9.0
 
 Short description (matches the extension manifest; 118 characters)
 Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut.
 
 DETAILED DESCRIPTION — COPY THE TEXT BELOW
 
-Go from an alphaXiv paper to its arXiv page in one click, or paste a paper link or identifier in the toolbar popup. Back to arXiv gives you page controls, a popup, a keyboard shortcut, and an action for paper links in Chrome's right-click menu.
+Open an alphaXiv paper on arXiv, search for a paper you only know by title, or organize a list of references for your notes.
+
+Move the page controls
+Drag the handle to move the floating toolbar. Choose Minimize toolbar on the page or Minimize floating toolbar in the popup to show one arXiv button. Click it to open the paper, drag it to reposition, or right-click to expand. You can also restore the full toolbar or reset its position in the popup. Chrome remembers the layout across papers.
+
+Find a paper by title or keywords
+Type a title in the popup and choose Search arXiv, or highlight text on a webpage and choose Find selected text on arXiv. A recognized paper reference opens directly. A title or keyword search offers matching papers with titles, authors, and first-submission years. Choose a result and reading format to open in a new tab. On first use, click Search on the results page to grant optional access to export.arxiv.org. With permission, an explicit popup or context-menu search runs directly. Only the query and pagination options go to the API. Queries and results clear on reload or close.
 
 Paste a paper from anywhere
 Enter a supported alphaXiv or arXiv URL, a modern identifier such as 1706.03762v3, a legacy identifier such as hep-th/9901001v2, or arXiv:1706.03762v3. The preview updates as you type. Opening an entered paper always uses a new tab, keeping your source page open. Clear the input to return to the current page. Entered text stays in memory while the popup is open and clears when it closes. Invalid input disables opening and copying until corrected or cleared.
@@ -54,8 +60,6 @@ English and Simplified Chinese
 The interface starts in English. Choose English, 简体中文, or Follow browser in the popup. The language choice also updates page controls and the right-click menu.
 
 Local preferences and optional retrieval
-Reading format, version, tab behavior, and language are saved locally. The background keeps only a request-pacing timestamp in session storage, not paper identifiers or API responses. Metadata fetches omit cookies and the referrer; arXiv receives selected identifiers and ordinary network information such as IP address and headers. Clipboard actions and Markdown/BibTeX downloads run only when requested. Drafts and fetched metadata stay in tab memory. Opening a paper navigates directly to arXiv.
+Reading format, version, tab behavior, language, floating toolbar position, and minimized state are saved locally. The background keeps only a request-pacing timestamp in session storage, not paper identifiers or API responses. Metadata fetches omit cookies and the referrer; arXiv receives the submitted query or selected identifiers and ordinary network information such as IP address and headers. Clipboard actions and Markdown/BibTeX downloads run only when requested. Drafts and fetched metadata stay in tab memory. Opening a paper navigates directly to arXiv.
 
 HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for paper readers.
-
-Version 0.8.0 adds on-demand paper details, title-based Markdown, and generated BibTeX exports. The API host is optional; the original link workflow remains available without it.

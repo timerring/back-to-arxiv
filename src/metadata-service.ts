@@ -1,4 +1,5 @@
 import { parsePaperInput } from './paper';
+import { buildSearchApiUrl, MAX_SEARCH_START, normalizeSearchQuery, SEARCH_PAGE_SIZE } from './search';
 import { MAX_METADATA_IDS, MAX_METADATA_RESPONSE_BYTES, METADATA_ORIGIN, type MetadataError, type MetadataResponse } from './metadata-protocol';
 
 export { MAX_METADATA_IDS, METADATA_ORIGIN, type MetadataResponse } from './metadata-protocol';
@@ -20,16 +21,17 @@ interface MetadataDependencies {
   clearTimeout: (timer: Timer) => void;
 }
 
-interface Job {
+interface JobBase {
   key: string;
   owner: string;
   tabId: number | undefined;
-  ids: string[];
   controller: AbortController;
   respond: (response: MetadataResponse) => void;
   settled: boolean;
   reason?: MetadataError;
 }
+
+type Job = JobBase & ({ kind: 'metadata'; ids: string[] } | { kind: 'search'; query: string; start: number });
 
 class MetadataFailure extends Error {
   constructor(readonly code: MetadataError) { super(code); }
@@ -85,7 +87,7 @@ async function readBoundedResponse(response: Response, signal: AbortSignal): Pro
   }
 }
 
-/** One queue spans every workbench tab; session storage keeps only a pacing timestamp. */
+/** One queue spans metadata and search tabs; session storage keeps only a pacing timestamp. */
 export function createMetadataService(overrides: Partial<MetadataDependencies> = {}) {
   const dependencies: MetadataDependencies = {
     fetch: (input, init) => globalThis.fetch(input, init),
@@ -145,9 +147,13 @@ export function createMetadataService(overrides: Partial<MetadataDependencies> =
       job.controller.abort();
     }, METADATA_TIMEOUT_MS);
     try {
-      const url = new URL('https://export.arxiv.org/api/query');
-      url.searchParams.set('id_list', job.ids.join(','));
-      url.searchParams.set('max_results', String(job.ids.length));
+      const url = job.kind === 'search'
+        ? new URL(buildSearchApiUrl(job.query, job.start))
+        : new URL('https://export.arxiv.org/api/query');
+      if (job.kind === 'metadata') {
+        url.searchParams.set('id_list', job.ids.join(','));
+        url.searchParams.set('max_results', String(job.ids.length));
+      }
       const response = await dependencies.fetch(url.href, {
         method: 'GET', credentials: 'omit', redirect: 'error', referrerPolicy: 'no-referrer',
         headers: { Accept: 'application/atom+xml' }, signal,
@@ -187,25 +193,37 @@ export function createMetadataService(overrides: Partial<MetadataDependencies> =
     sender: chrome.runtime.MessageSender,
     sendResponse: (response: MetadataResponse) => void,
   ): true | undefined {
-    if (sender.id !== chrome.runtime.id || sender.url !== chrome.runtime.getURL('batch.html') || typeof message !== 'object' || message === null) return;
+    if (sender.id !== chrome.runtime.id || typeof message !== 'object' || message === null) return;
     const request = message as Record<string, unknown>;
-    if (request.type !== 'FETCH_CITATION_METADATA' && request.type !== 'CANCEL_CITATION_METADATA') return;
+    const metadata = request.type === 'FETCH_CITATION_METADATA' || request.type === 'CANCEL_CITATION_METADATA';
+    const search = request.type === 'SEARCH_ARXIV' || request.type === 'CANCEL_ARXIV_SEARCH';
+    if (!metadata && !search) return;
+    // Chrome can report the search document's original launch fragment even
+    // after the page has removed it from the address bar with replaceState.
+    const documentUrl = search ? sender.url?.split('#', 1)[0] : sender.url;
+    if (documentUrl !== chrome.runtime.getURL(metadata ? 'batch.html' : 'search.html')) return;
     if (typeof request.requestId !== 'string' || /^[A-Za-z0-9_-]{1,80}$/.test(request.requestId) === false) {
       reply(sendResponse, { ok: false, error: 'invalidRequest' });
       return true;
     }
     const owner = sender.documentId ? `document:${sender.documentId}` : `tab:${sender.tab?.id ?? 'extension'}`;
-    const key = `${owner}:${request.requestId}`;
-    if (request.type === 'CANCEL_CITATION_METADATA') {
+    const key = `${metadata ? 'metadata' : 'search'}:${owner}:${request.requestId}`;
+    if (request.type === 'CANCEL_CITATION_METADATA' || request.type === 'CANCEL_ARXIV_SEARCH') {
       const job = jobs.get(key);
       if (job !== undefined) cancel(job);
       reply(sendResponse, { ok: false, error: 'cancelled' });
       return true;
     }
     const ids = request.ids;
-    if (Array.isArray(ids) === false || ids.length === 0 || ids.length > MAX_METADATA_IDS
-      || ids.some((id) => typeof id !== 'string' || id.length > 128 || parsePaperInput(id)?.id !== id)
-      || new Set(ids).size !== ids.length || jobs.has(key)) {
+    const query = search ? normalizeSearchQuery(request.query) : null;
+    const start = request.start;
+    const invalidPayload = metadata
+      ? Array.isArray(ids) === false || ids.length === 0 || ids.length > MAX_METADATA_IDS
+        || ids.some((id) => typeof id !== 'string' || id.length > 128 || parsePaperInput(id)?.id !== id)
+        || new Set(ids).size !== ids.length
+      : query === null || typeof start !== 'number' || !Number.isInteger(start)
+        || start < 0 || start > MAX_SEARCH_START || start % SEARCH_PAGE_SIZE !== 0;
+    if (invalidPayload || jobs.has(key)) {
       reply(sendResponse, { ok: false, error: 'invalidRequest' });
       return true;
     }
@@ -213,7 +231,10 @@ export function createMetadataService(overrides: Partial<MetadataDependencies> =
       reply(sendResponse, { ok: false, error: 'busy' });
       return true;
     }
-    const job: Job = { key, owner, tabId: sender.tab?.id, ids: [...ids], controller: new AbortController(), respond: sendResponse, settled: false };
+    const payload = metadata
+      ? { kind: 'metadata' as const, ids: [...ids as string[]] }
+      : { kind: 'search' as const, query: query!, start: start as number };
+    const job: Job = { key, owner, tabId: sender.tab?.id, ...payload, controller: new AbortController(), respond: sendResponse, settled: false };
     jobs.set(key, job);
     queue.push(job);
     pump();

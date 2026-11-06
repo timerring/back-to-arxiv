@@ -1,4 +1,4 @@
-Back to arXiv 0.8.0 — reviewer test instructions
+Back to arXiv 0.9.0 — reviewer test instructions
 
 Access and purpose
 The extension opens and copies arXiv paper links from supported alphaXiv/arXiv pages, hyperlinks, and paper URLs or identifiers entered in the popup. Testing uses public paper pages and requires Chrome 120 or later.
@@ -22,7 +22,7 @@ Open https://example.org and invoke the popup. Enter 1706.03762v3. Expect an imm
 Smart-paste cases: enter [Attention](https://arxiv.org/abs/1706.03762v3), [Attention](<https://arxiv.org/abs/1706.03762v3>), and <https://arxiv.org/abs/1706.03762v3> separately. Each selects 1706.03762v3; copy generates the clean paper URL and ignores the pasted label. Repeat with 10.48550/arXiv.1706.03762, doi:10.48550/arXiv.1706.03762, https://doi.org/10.48550/arXiv.1706.03762, and https://dx.doi.org/10.48550/arXiv.1706.03762. Each selects unversioned 1706.03762 with both Current version and Latest version. These DOIs identify the latest version; parsing does not contact a DOI resolver. A Markdown link whose destination is one of these DOI URLs is also accepted.
 
 5. Input priority and validation
-Return to https://www.alphaxiv.org/abs/1706.03762v7. Enter hep-th/9901001v2 in the popup: preview and actions target the entered paper. Replace it with invalid text such as example: all open and copy actions are disabled. Clear the field: preview and actions return to the current page's 1706.03762v7. Close and reopen the popup after entering a valid paper: input is empty and preview follows the current page again.
+Return to https://www.alphaxiv.org/abs/1706.03762v7. Enter hep-th/9901001v2 in the popup: preview and actions target the entered paper. Replace it with a malformed reference such as arXiv:invalid: all open and copy actions are disabled. Clear the field: preview and actions return to the current page's 1706.03762v7. Close and reopen the popup after entering a valid paper: input is empty and preview follows the current page again.
 
 Also reject: Read [paper](https://arxiv.org/abs/1706.03762), two Markdown links, [paper](https://arxiv.org/abs/1706.03762 "title"), a journal DOI such as 10.1038/example, and 10.48550/arXiv.1706.03762v3. The extension accepts one complete supported reference, not a paragraph or a versioned DOI.
 
@@ -100,11 +100,17 @@ Remove export.arxiv.org access in Chrome's extension site-access settings, then 
 
 Automated coverage uses an isolated staged copy of the build with the API host granted so headless Chrome can test the real service worker and intercepted Atom responses. The production package declares that host only in optional_host_permissions. Permission denial is covered separately; the native prompt and manual revocation steps above remain reviewer checks.
 
-16. Finish
+16. Move or minimize the page toolbar
+On an alphaXiv paper, drag its handle and release it over an empty area of the page. It should stay there without opening a paper. Reload, navigate to another paper, and resize the window. The toolbar should remain visible. Click Minimize toolbar on the page and verify only one arXiv button remains. Drag it again, then click it to open the paper using the saved preferences. Right-click the minimized button to expand. Check the equivalent Minimize floating toolbar and Reset position controls in the popup. A reset returns the toolbar to its default lower-right position.
+
+17. Search titles and selected text
+Remove the optional API permission first. In the popup, enter “attention transformers” and choose Search arXiv. The results tab should initially show your query and prompt for a Search click. Deny the Chrome permission prompt, then click Search again and grant it. Results show title, authors and year, with Abstract, PDF and HTML links. Use Next and Previous where available and choose any format to open the corresponding arXiv paper in another tab. Refresh or close the search tab and verify the query and results clear. With permission granted, select a title on a webpage and invoke Find selected text on arXiv. Search should start directly. Repeat with the exact selected identifier 1706.03762v7 to open that paper using the saved reading format. Edit or cancel an in-flight search and verify the old results do not replace the new input.
+
+18. Finish
 Restore English, Abstract, Current version, and current-tab opening if desired. Refresh existing alphaXiv tabs after reloading or updating the extension. Upgrading retains existing preferences.
 
-Changes in 0.8.0
+Previous release (0.8.0)
 The batch organizer retrieves titles and authors only on request, after optional API-host access is granted. It exports title-based Markdown with identifier fallback and generated BibTeX for fetched papers only. Progress, cancellation, retry, and exact-version matching protect the existing local workflow. Single-paper controls and the popup organizer entry remain available.
 
 Implementation notes
-The required permissions remain storage, activeTab, clipboardWrite, and contextMenus. AlphaXiv content-script matches remain unchanged. optional_host_permissions adds only https://export.arxiv.org/*. The background validates requests from batch.html, checks host access, and performs GET requests to the fixed official API with cookies and referrer omitted. All workbenches share one paced connection; only metadataNextRequestAt is kept in chrome.storage.session across worker restarts. Paper identifiers and responses are not stored there. Four reading preferences remain in chrome.storage.local. Drafts, metadata, and batch-version choices stay in the workbench memory. Parsing, deduplication, and export generation are local, while the explicit Fetch action sends selected identifiers to arXiv, which receives ordinary request headers and IP information. DOI parsing does not contact a resolver. All executable code and assets are bundled; API responses are metadata, not remote code.
+The required permissions remain storage, activeTab, clipboardWrite, and contextMenus. AlphaXiv content-script matches remain unchanged. optional_host_permissions adds only https://export.arxiv.org/*. The background accepts batch lookups from batch.html and search from search.html, checks host access, and performs GET requests to the fixed official API with cookies and referrer omitted. All workbenches share one paced connection; only metadataNextRequestAt is kept in chrome.storage.session across worker restarts. Paper identifiers and responses are not stored there. Reading preferences, toolbarPosition and toolbarMinimized use chrome.storage.local. Drafts, metadata, and batch-version choices stay in the workbench memory. Parsing, deduplication, and export generation are local, while Fetch sends selected identifiers and Search sends the submitted query to arXiv, which receives ordinary request headers and IP information. DOI parsing does not contact a resolver. All executable code and assets are bundled; API responses are metadata, not remote code.

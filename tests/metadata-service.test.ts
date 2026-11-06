@@ -55,6 +55,9 @@ function invoke(service: ReturnType<typeof createMetadataService>, message: unkn
 }
 const request = (requestId: string, ids = ['1706.03762v3']) => ({ type: 'FETCH_CITATION_METADATA', requestId, ids });
 const cancel = (requestId: string) => ({ type: 'CANCEL_CITATION_METADATA', requestId });
+const searchSender = { ...sender, url: 'chrome-extension://test-extension/search.html', documentId: 'search-document', tab: { id: 43 } } as chrome.runtime.MessageSender;
+const searchRequest = (requestId: string, query: unknown = 'attention mechanism', start: unknown = 0) => ({ type: 'SEARCH_ARXIV', requestId, query, start });
+const cancelSearch = (requestId: string) => ({ type: 'CANCEL_ARXIV_SEARCH', requestId });
 
 test('only the trusted workbench can request metadata or cancel a request', async () => {
   const h = harness();
@@ -307,4 +310,154 @@ test('the production adapter uses only the declared optional origin and a timest
   assert.deepEqual(reads, ['metadataNextRequestAt']);
   assert.equal(writes.length, 2);
   assert.ok(writes.every((value) => Object.keys(value).join() === 'metadataNextRequestAt' && typeof value.metadataNextRequestAt === 'number'));
+});
+
+test('search and metadata requests and cancellations are restricted to their exact trusted pages', async () => {
+  const h = harness();
+  const service = createMetadataService(h.dependencies);
+  for (const origin of [sender, { ...searchSender, id: 'other-extension' },
+    { ...searchSender, url: `${searchSender.url}.other#q=attention` },
+    { ...searchSender, url: `${searchSender.url}?q=attention` },
+    { ...searchSender, url: 'https://arxiv.org/search/' }, { id: sender.id },
+  ]) {
+    assert.equal(await invoke(service, searchRequest('blocked'), origin), undefined);
+    assert.equal(await invoke(service, cancelSearch('blocked'), origin), undefined);
+  }
+  assert.equal(await invoke(service, request('blocked'), searchSender), undefined);
+  assert.equal(await invoke(service, cancel('blocked'), searchSender), undefined);
+  assert.deepEqual(h.state.requests, []);
+  assert.deepEqual(h.state.writes, []);
+});
+
+test('search validates bounded query, request ID and ten-result offsets before queueing', async () => {
+  const h = harness();
+  const service = createMetadataService(h.dependencies);
+  for (const bad of [
+    ...[null, '', ' ', 42, {}, 'x'.repeat(301), '\u0000attention'].map((query) => searchRequest('invalid', query)),
+    { ...searchRequest('invalid'), query: undefined },
+    ...[-10, 1, 200, 1.5, NaN, Infinity, '10', null].map((start) => searchRequest('invalid', 'attention', start)),
+    { type: 'SEARCH_ARXIV', requestId: 'missing-offset', query: 'attention' },
+    { ...searchRequest('valid'), requestId: '' }, { ...searchRequest('valid'), requestId: '../bad' },
+    { ...searchRequest('valid'), requestId: 'x'.repeat(81) },
+    { type: 'CANCEL_ARXIV_SEARCH', requestId: 'bad id' },
+  ]) assert.deepEqual(await invoke(service, bad, searchSender), { ok: false, error: 'invalidRequest' });
+  assert.deepEqual(h.state.requests, []);
+  assert.deepEqual(h.state.writes, []);
+});
+
+test('search uses a fixed API destination with normalized quoted terms and a bounded page', async () => {
+  const h = harness();
+  const service = createMetadataService(h.dependencies);
+  assert.deepEqual(await invoke(service, searchRequest('query', ' attention\n OR cat:cs.AI ', 190), searchSender), { ok: true, xml });
+  const sent = h.state.requests[0]!;
+  const url = new URL(sent.url);
+  assert.equal(url.origin, 'https://export.arxiv.org');
+  assert.equal(url.pathname, '/api/query');
+  assert.equal(url.searchParams.get('search_query'), 'all:"attention" AND all:"OR" AND all:"cat:cs.AI"');
+  assert.equal(url.searchParams.get('start'), '190');
+  assert.equal(url.searchParams.get('max_results'), '10');
+  assert.equal(url.searchParams.get('id_list'), null);
+  assert.equal(url.searchParams.get('sortBy'), 'relevance');
+  assert.equal(sent.init.credentials, 'omit');
+  assert.equal(sent.init.redirect, 'error');
+  assert.equal(sent.init.referrerPolicy, 'no-referrer');
+  assert.deepEqual(sent.init.headers, { Accept: 'application/atom+xml' });
+  assert.equal(h.state.requests.length, 1);
+});
+
+test('search and metadata share one connection and wait three seconds after each completed body', async () => {
+  const h = harness();
+  let completeFirst: (() => void) | undefined;
+  h.state.fetch = async () => new Response(new ReadableStream<Uint8Array>({
+    start(controller) {
+      const complete = () => { controller.enqueue(new TextEncoder().encode(xml)); controller.close(); };
+      if (h.state.requests.length === 1) completeFirst = () => { h.state.now += 2_000; complete(); };
+      else complete();
+    },
+  }));
+  const service = createMetadataService(h.dependencies);
+  const pending = [invoke(service, searchRequest('first'), searchSender), invoke(service, request('second')),
+    invoke(service, searchRequest('third', 'graph networks', 10), searchSender)];
+  await tick();
+  assert.equal(h.state.requests.length, 1);
+  completeFirst!();
+  for (const result of await Promise.all(pending)) assert.deepEqual(result, { ok: true, xml });
+  assert.deepEqual(h.state.requests.map((sent) => sent.started), [10_000, 15_000, 18_000]);
+  assert.deepEqual(h.state.requests.map((sent) => new URL(sent.url).searchParams.has('id_list')), [false, true, false]);
+  assert.deepEqual(h.state.waits, [3_000, 3_000]);
+});
+
+test('search cancellations are scoped to the owning page and document while tab closure cancels both kinds', async () => {
+  const h = harness();
+  h.state.fetch = async (_url, init) => h.state.requests.length === 1
+    ? new Promise<Response>((_resolve, reject) => init!.signal!.addEventListener('abort', () => reject(abortError()), { once: true }))
+    : new Response(xml);
+  const service = createMetadataService(h.dependencies);
+  const active = invoke(service, searchRequest('shared'), searchSender);
+  const queued = invoke(service, searchRequest('queued'), searchSender);
+  const metadata = invoke(service, request('shared'), { ...sender, tab: searchSender.tab });
+  const other = invoke(service, searchRequest('other'), { ...searchSender, documentId: 'other-document', tab: { id: 44 } } as chrome.runtime.MessageSender);
+  await tick();
+  await invoke(service, cancelSearch('shared'), { ...searchSender, documentId: 'other-document' });
+  await invoke(service, cancel('shared'), { ...sender, documentId: searchSender.documentId });
+  assert.equal(h.state.requests[0]!.init.signal!.aborted, false);
+  await invoke(service, cancelSearch('queued'), searchSender);
+  assert.deepEqual(await queued, { ok: false, error: 'cancelled' });
+  service.cancelTab(43);
+  assert.deepEqual(await active, { ok: false, error: 'cancelled' });
+  assert.deepEqual(await metadata, { ok: false, error: 'cancelled' });
+  assert.deepEqual(await other, { ok: true, xml });
+  assert.equal(h.state.requests.length, 2);
+});
+
+test('search uses the shared timeout, response cap and permission checks without retries', async () => {
+  const denied = harness();
+  denied.state.permission = false;
+  assert.deepEqual(await invoke(createMetadataService(denied.dependencies), searchRequest('denied'), searchSender), { ok: false, error: 'permissionDenied' });
+  assert.deepEqual(denied.state.requests, []);
+  for (const [fetch, expected] of [
+    [async () => new Response('busy', { status: 503 }), 'http'],
+    [async () => { throw new Error('Offline'); }, 'network'],
+    [async () => new Response('', { headers: { 'content-length': String(MAX_METADATA_RESPONSE_BYTES + 1) } }), 'tooLarge'],
+    [async () => new Response(new Uint8Array(MAX_METADATA_RESPONSE_BYTES + 1)), 'tooLarge'],
+  ] as const) {
+    const h = harness();
+    h.state.fetch = fetch;
+    assert.deepEqual(await invoke(createMetadataService(h.dependencies), searchRequest('failure'), searchSender), { ok: false, error: expected });
+    assert.equal(h.state.requests.length, 1);
+    assert.equal(h.state.timers.size, 0);
+  }
+  const h = harness();
+  h.state.fetch = async (_url, init) => new Promise<Response>((_resolve, reject) => init!.signal!.addEventListener('abort', () => reject(abortError()), { once: true }));
+  const service = createMetadataService(h.dependencies);
+  const pending = invoke(service, searchRequest('timeout'), searchSender);
+  await tick();
+  [...h.state.timers.values()][0]!();
+  assert.deepEqual(await pending, { ok: false, error: 'timeout' });
+  assert.equal(h.state.timers.size, 0);
+});
+
+test('metadata and search share pending capacity and search IDs cannot be reused while pending', async () => {
+  const h = harness();
+  h.state.fetch = async (_url, init) => new Promise<Response>((_resolve, reject) => init!.signal!.addEventListener('abort', () => reject(abortError()), { once: true }));
+  const service = createMetadataService(h.dependencies);
+  const pending = Array.from({ length: MAX_METADATA_PENDING }, (_, index) => index % 2
+    ? invoke(service, request(`job-${index}`)) : invoke(service, searchRequest(`job-${index}`), searchSender));
+  await tick();
+  assert.deepEqual(await invoke(service, searchRequest('job-0'), searchSender), { ok: false, error: 'invalidRequest' });
+  assert.deepEqual(await invoke(service, searchRequest('overloaded'), searchSender), { ok: false, error: 'busy' });
+  assert.deepEqual(await invoke(service, request('overloaded')), { ok: false, error: 'busy' });
+  service.cancelTab(42);
+  service.cancelTab(43);
+  for (const result of await Promise.all(pending)) assert.deepEqual(result, { ok: false, error: 'cancelled' });
+  await tick();
+  assert.equal(h.state.requests.length, 1);
+});
+
+test('Chrome may retain the original search launch fragment on the message sender', async () => {
+  const h = harness();
+  const service = createMetadataService(h.dependencies);
+  const launch = { ...searchSender, url: `${searchSender.url}#q=attention&run=1` };
+  assert.deepEqual(await invoke(service, searchRequest('launch'), launch), { ok: true, xml });
+  assert.equal(h.state.requests.length, 1);
 });
