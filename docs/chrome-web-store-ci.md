@@ -4,6 +4,14 @@ GitHub 正式 Release → 校验版本、类型检查、单元测试和浏览器
 
 工作流使用 Chrome Web Store V2 API 的 `DEFAULT_PUBLISH`，不跳过审核，也不使用等待手动上线的 `STAGED_PUBLISH`。CI 成功只表示提交成功，不代表审核通过。已有商店可见性及灰度比例保持不变；若要面向所有用户，先在后台设置公开可见和所需发布比例。
 
+## 短期令牌认证
+
+支持 Google Workload Identity Federation（WIF），配置 `CWS_WORKLOAD_IDENTITY_PROVIDER` 和 `CWS_SERVICE_ACCOUNT` 后优先使用该方式，无需 OAuth Secrets。构建和发布拆为两个作业，只有发布作业可取得 GitHub OIDC 身份；令牌不写入文件。未配置 WIF 时仍可使用下面的 OAuth 方式。
+
+本仓库已核实的 ID 和待授权的 WIF 配置见 [授权配置](chrome-web-store-authorization.md)。该文件明确区分已完成配置与待执行的云端权限变更。
+
+手动运行时可选 `check_store=true`、`submit=false`，仅验证商店 API 授权，不上传安装包。`submit=true` 则执行上传提交。
+
 ## 首次设置
 
 1. 在 [开发者后台](https://chrome.google.com/webstore/devconsole) 创建条目，上传首次安装包，完成商店介绍、隐私说明、分发设置及账号要求。API 无法创建新条目。商店资料变更仍需在后台维护。
@@ -41,6 +49,6 @@ GitHub 正式 Release → 校验版本、类型检查、单元测试和浏览器
 - 其他版本正在审核，或存在已审核但暂存的版本时停止，避免覆盖。不会取消审核或自动绕过拒绝原因。
 - API 网络失败不会自动重试写操作。先检查后台实际状态再重跑，避免把网络异常当成“没有提交”。
 - 上传成功但 publish 失败时，先修复后台资料、凭据或权限问题。若重跑上传提示重复版本，可在后台对已上传草稿直接提交审核。
-- CI 日志不输出令牌及 OAuth 响应体。Secrets 仅传入最终发布步骤，GitHub token 仅有 `contents: read` 权限。
+- CI 日志不输出令牌及 OAuth 响应体。Secrets 仅传入最终发布步骤，构建作业的 GitHub token 仅有 `contents: read` 权限；发布作业另有 `id-token: write` 用于 WIF。
 
 参考：[publish 的自动上线模式](https://developer.chrome.com/docs/webstore/api/reference/rest/v2/publishers.items/publish)、[上传状态](https://developer.chrome.com/docs/webstore/api/reference/rest/v2/UploadState)。

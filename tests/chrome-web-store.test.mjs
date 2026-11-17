@@ -69,3 +69,17 @@ test('wrong uploaded version and rejected publication fail visibly', async () =>
   const rejected = mock([{ access_token: 'access' }, {}, { uploadState: 'SUCCEEDED', crxVersion: config.version }, { state: 'REJECTED' }]);
   await assert.rejects(submitToStore(config, rejected), /REJECTED/);
 });
+
+test('federated token bypasses OAuth exchange and authenticates store requests', async () => {
+  const api = mock([{}, { uploadState: 'SUCCEEDED', crxVersion: config.version }, { state: 'PENDING_REVIEW' }]);
+  await submitToStore({ ...config, clientId: undefined, clientSecret: undefined, refreshToken: undefined, accessToken: 'federated' }, api);
+  assert.equal(api.calls.length, 3);
+  assert.equal(api.calls.every((call) => call.headers.Authorization === 'Bearer federated'), true);
+});
+
+test('status-only mode never uploads or publishes, even for an unpublished item', async () => {
+  const api = mock([{}]);
+  assert.deepEqual(await submitToStore({ ...config, zip: undefined, version: undefined, accessToken: 'federated', statusOnly: true }, api), { state: 'UNPUBLISHED', skipped: true });
+  assert.equal(api.calls.length, 1);
+  assert.equal(api.calls[0].url.endsWith(':fetchStatus'), true);
+});
