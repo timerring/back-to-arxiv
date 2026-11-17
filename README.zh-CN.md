@@ -8,6 +8,8 @@
 
 主按钮及快捷键现在支持 arXiv ↔ alphaXiv 双向跳转。arXiv 摘要页和 HTML Beta 页面均显示浮条；PDF 页面可使用扩展面板或快捷键。版本和标签页偏好继续生效。打开菜单仍用于选择 arXiv 摘要、PDF 或 HTML；手动输入、右键链接及复制仍以 arXiv 为目标。更新扩展后请刷新两站已有标签页。
 
+GitHub Release 自动上传并提交 Chrome Web Store 审核的配置见 [CI 发布说明](docs/chrome-web-store-ci.md)。审核通过后由 Google 自动上线；首次需要创建商店条目并配置 Actions 凭据。
+
 ## 安装到 Chrome
 
 使用 **Chrome 120+** 时，可直接解压 Release 的扩展 ZIP，按下方步骤加载包含 `manifest.json` 的文件夹。从源码构建则需要 **Node.js 22.12.0+**，在项目根目录运行以下命令。

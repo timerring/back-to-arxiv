@@ -1,0 +1,105 @@
+name: Chrome Web Store
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag, for example v0.10.0'
+        required: true
+        type: string
+      submit:
+        description: 'Upload and submit for automatic publication after review (false = validation only)'
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: chrome-web-store
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.event_name == 'workflow_dispatch' || github.event.release.prerelease == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out publishing tools
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          path: automation
+          persist-credentials: false
+      - name: Validate tag
+        id: release
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo 'Expected a version tag such as v0.10.0.' >&2
+            exit 1
+          fi
+          echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
+          echo "version=${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
+      - name: Check out exact release source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: refs/tags/${{ steps.release.outputs.tag }}
+          path: source
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: source/package-lock.json
+      - name: Validate manifest and package versions
+        working-directory: source
+        env:
+          EXPECTED_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          node --input-type=module <<'JS'
+          import { readFileSync } from 'node:fs';
+          for (const file of ['package.json', 'package-lock.json', 'public/manifest.json']) {
+            const data = JSON.parse(readFileSync(file, 'utf8'));
+            if (data.version !== process.env.EXPECTED_VERSION) throw new Error(`${file} does not match the release tag`);
+          }
+          JS
+      - name: Test publishing failure paths
+        run: node --test automation/tests/chrome-web-store.test.mjs
+      - name: Install and check release
+        working-directory: source
+        run: |
+          npm ci
+          npm run check
+      - name: Browser integration
+        working-directory: source
+        run: |
+          npx playwright install --with-deps chromium
+          npm run test:browser
+      - name: Package verified source
+        working-directory: source
+        run: node scripts/package.mjs
+      - name: Save upload package
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: chrome-web-store-${{ steps.release.outputs.version }}
+          path: |
+            source/release/*.zip
+            source/release/*.sha256
+          if-no-files-found: error
+      - name: Upload and submit for automatic publication
+        if: (github.event_name == 'release' && vars.CWS_ENABLED == 'true') || (github.event_name == 'workflow_dispatch' && inputs.submit)
+        env:
+          CWS_VERSION: ${{ steps.release.outputs.version }}
+          CWS_PUBLISHER_ID: ${{ vars.CWS_PUBLISHER_ID }}
+          CWS_EXTENSION_ID: ${{ vars.CWS_EXTENSION_ID }}
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+        run: node automation/scripts/chrome-web-store.mjs "source/release/back-to-arxiv-${CWS_VERSION}.zip"
+      - name: Report validation-only run
+        if: (github.event_name == 'release' && vars.CWS_ENABLED != 'true') || (github.event_name == 'workflow_dispatch' && !inputs.submit)
+        run: echo 'Validation only. No Chrome Web Store upload or submission was performed. Configure credentials and enable CWS_ENABLED=true for automatic release submission.' >> "$GITHUB_STEP_SUMMARY"

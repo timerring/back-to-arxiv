@@ -8,6 +8,8 @@ Version 0.10.0 adds bidirectional arXiv/alphaXiv navigation, including arXiv HTM
 
 The main button and keyboard shortcut now switch between arXiv and alphaXiv. The dock appears on arXiv abstract and HTML Beta pages; use the popup or shortcut on PDF pages. Version and tab preferences apply in both directions. Format menu actions, manual input, context links, and copying still target arXiv. Refresh existing tabs on both sites after reloading the extension.
 
+For automatic Chrome Web Store submission on GitHub Releases, see [CI setup](docs/chrome-web-store-ci.md). Google publishes after approval; the initial store item and Actions credentials must be configured first.
+
 ## Install in Chrome
 
 For Chrome 120+, extract the versioned extension ZIP from the release, then follow the steps below starting at step 1. Select the extracted folder containing `manifest.json`. To build from source instead, use **Node.js 22.12.0+** and run the following commands in the project directory.
