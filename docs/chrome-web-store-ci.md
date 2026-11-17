@@ -8,7 +8,7 @@ GitHub 正式 Release → 校验版本、类型检查、单元测试和浏览器
 
 支持 Google Workload Identity Federation（WIF），配置 `CWS_WORKLOAD_IDENTITY_PROVIDER` 和 `CWS_SERVICE_ACCOUNT` 后优先使用该方式，无需 OAuth Secrets。构建和发布拆为两个作业，只有发布作业可取得 GitHub OIDC 身份；令牌不写入文件。未配置 WIF 时仍可使用下面的 OAuth 方式。
 
-本仓库已核实的 ID 和待授权的 WIF 配置见 [授权配置](chrome-web-store-authorization.md)。该文件明确区分已完成配置与待执行的云端权限变更。
+本仓库的 WIF 已于 2026-11-18 配置并验证，正式 Release 自动提交已启用。已核实的 ID、授权范围和验证记录见 [授权配置](chrome-web-store-authorization.md)。
 
 手动运行时可选 `check_store=true`、`submit=false`，仅验证商店 API 授权，不上传安装包。`submit=true` 则执行上传提交。
 
