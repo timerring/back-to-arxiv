@@ -1,4 +1,4 @@
-BACK TO ARXIV 0.9.0 — PRIVACY TAB FILLING GUIDE
+BACK TO ARXIV 0.10.0 — PRIVACY TAB FILLING GUIDE
 Updated from the implementation on 2026-11-06; Chrome Web Store references below.
 
 SINGLE PURPOSE — PASTE THIS
@@ -23,7 +23,7 @@ OPTIONAL ARXIV API HOST ACCESS — PASTE IF REQUESTED
 optional_host_permissions declares only https://export.arxiv.org/*. Clicking Fetch paper details or Search on the results page requests this access through Chrome. With permission, launching a title search from the popup or context menu runs it immediately. Search sends the submitted title or selected words as query terms with bounded pagination options. After a grant, the background requests https://export.arxiv.org/api/query with selected unique arXiv identifiers, in batches of up to 50. Raw pasted labels and complete source URLs are not sent. Requests omit cookies and the referrer; arXiv receives identifiers and ordinary network information such as IP address and headers. The response is descriptive metadata, not executable code. Denying or revoking access leaves local parsing, deduplication, and identifier-list export available. Pasting, editing, or changing settings never starts lookup. Search and batch requests share one paced connection; the user can cancel, and retry requests only unavailable papers.
 
 IMPLEMENTATION SCOPE
-Required permissions are storage, activeTab, clipboardWrite, and contextMenus. Only the two alphaXiv hosts receive page controls. The API host is optional. Search queries and results stay in the results tab until close or reload. arXiv query text is passed to the results page in a local URL fragment, which the page immediately removes. Batch metadata stays in the active workbench until close or reload. BibTeX is generated locally from Atom metadata, using the first-submission year and selected version.
+Required permissions are storage, activeTab, clipboardWrite, and contextMenus. Page controls run on alphaxiv.org, www.alphaxiv.org, arxiv.org, and www.arxiv.org. The API host is optional. Search queries and results stay in the results tab until close or reload. arXiv query text is passed to the results page in a local URL fragment, which the page immediately removes. Batch metadata stays in the active workbench until close or reload. BibTeX is generated locally from Atom metadata, using the first-submission year and selected version.
 
 REMOTE CODE
 Select: No, I am not using remote code.

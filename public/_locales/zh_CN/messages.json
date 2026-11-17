@@ -1,7 +1,7 @@
 {
   "extName": { "message": "Back to arXiv" },
-  "extDescription": { "message": "从 alphaXiv 一键回到 arXiv 原文，保留论文版本，支持摘要、PDF、实验性 HTML、复制链接和快捷键。" },
-  "commandOpenArxiv": { "message": "按照阅读偏好打开当前论文的 arXiv 原文" },
+  "extDescription": { "message": "在 arXiv 和 alphaXiv 之间双向跳转，支持 arXiv HTML 页面。保留版本、复制链接，也可使用快捷键。" },
+  "commandOpenArxiv": { "message": "在 arXiv 和 alphaXiv 之间切换当前论文" },
   "tagline": { "message": "回到论文原文" },
   "currentPaper": { "message": "当前论文" },
   "identifyingSource": { "message": "正在读取" },
@@ -18,10 +18,11 @@
   "formatExperimental": { "message": "（实验性）" },
   "htmlNote": { "message": "只有部分论文版本提供 HTML。" },
   "openInNewTab": { "message": "在新标签页打开" },
-  "compactToolbar": { "message": "浮条只显示 arXiv 按钮" },
+  "compactToolbar": { "message": "浮条只显示跳转按钮" },
   "resetToolbarPosition": { "message": "恢复默认位置" },
   "toolbarLayoutSaved": { "message": "浮条设置已更新。" },
   "dockDrag": { "message": "拖动或使用方向键移动浮条" },
+  "dockExpand": { "message": "展开浮条" },
   "dockMinimize": { "message": "最小化浮条" },
   "dockCompactHint": { "message": "打开 arXiv · 拖动可移动 · 右键可展开" },
   "storageNote": { "message": "设置会自动保存在此浏览器" },
@@ -194,5 +195,9 @@
   "searchPagination": { "message": "搜索结果分页" },
   "searchRefine": { "message": "此处最多查看前 200 条结果，请细化搜索内容以找到更符合要求的论文。" },
   "searchLoadFailed": { "message": "无法读取阅读偏好，当前标签页使用默认设置。" },
-  "searchHtmlNote": { "message": "HTML 为实验性格式，部分论文版本可能不支持。" }
+  "searchHtmlNote": { "message": "HTML 为实验性格式，部分论文版本可能不支持。" },
+  "openAlphaXiv": { "message": "打开 alphaXiv" },
+  "dockAlphaNew": { "message": "在新标签页打开 alphaXiv" },
+  "dockAlphaCurrent": { "message": "在当前标签页打开 alphaXiv" },
+  "dockAlphaCompactHint": { "message": "打开 alphaXiv · 拖动移动 · 右键展开" }
 }

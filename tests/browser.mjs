@@ -174,8 +174,8 @@ try {
   await waitForLink(paper, 'https://arxiv.org/abs/hep-th/9901001v2');
   await paper.getByRole('link', { name: en.openArxiv.message }).click();
   await paper.waitForURL('https://arxiv.org/abs/hep-th/9901001v2');
-  assert.equal(await paper.locator('#back-to-arxiv-root').count(), 0);
-  console.log('PASS: current-tab navigation lands on arXiv and injection remains scoped to alphaXiv.');
+  await waitForLink(paper, 'https://www.alphaxiv.org/abs/hep-th/9901001v2');
+  console.log('PASS: current-tab navigation lands on arXiv with a reverse-navigation dock.');
 
   await paper.goto('https://www.alphaxiv.org/abs/1706.03762v3');
   await waitForLink(paper, 'https://arxiv.org/abs/1706.03762v3');
@@ -381,8 +381,23 @@ try {
   await waitForLink(paper, 'https://arxiv.org/html/1706.03762v3');
   await paper.getByRole('link', { name: en.openArxiv.message }).click();
   await paper.waitForURL('https://arxiv.org/html/1706.03762v3');
-  assert.equal(await paper.locator('#back-to-arxiv-root').count(), 0);
+  await waitForLink(paper, 'https://www.alphaxiv.org/abs/1706.03762v3');
   console.log('PASS: the page button opens HTML in the current tab while preserving the requested version.');
+
+  assert.equal(await paper.locator('#back-to-arxiv-root #open-paper').getAttribute('aria-label'), en.openAlphaXiv.message);
+  popup = await openPopup(context, paper, extensionId);
+  assert.equal(await popup.locator('#open-label').innerText(), en.openAlphaXiv.message);
+  assert.equal(await popup.locator('#paper-note').innerText(), 'www.alphaxiv.org/abs/1706.03762v3');
+  await popup.locator('#open-paper').click();
+  await paper.waitForURL('https://www.alphaxiv.org/abs/1706.03762v3');
+  if (!popup.isClosed()) await popup.close();
+  await waitForLink(paper, 'https://arxiv.org/html/1706.03762v3');
+  await paper.locator('#back-to-arxiv-root #open-paper').click();
+  await paper.waitForURL('https://arxiv.org/html/1706.03762v3');
+  await waitForLink(paper, 'https://www.alphaxiv.org/abs/1706.03762v3');
+  await paper.locator('#back-to-arxiv-root #open-paper').click();
+  await paper.waitForURL('https://www.alphaxiv.org/abs/1706.03762v3');
+  console.log('PASS: arXiv HTML supports reverse navigation through popup and page controls.');
 
   // Temporary page actions are real links with the same version/tab preferences.
   await setPreferences({ format: 'abs', openInNewTab: false, version: 'current', language: 'en' });

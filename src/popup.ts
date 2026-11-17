@@ -1,4 +1,4 @@
-import { buildArxivUrl, buildMarkdownLink, getPaperId, isPaperVersion, isReadingFormat, parsePaperUrl, type ReadingFormat } from './paper';
+import { buildReaderUrl, buildArxivUrl, buildMarkdownLink, getPaperId, isPaperVersion, isReadingFormat, parsePaperUrl, type ReadingFormat } from './paper';
 import { classifyPaperEntry } from './search';
 import { isLanguagePreference, localize, resolveLocale, translate, type LanguagePreference, type MessageKey } from './i18n';
 import {
@@ -125,7 +125,7 @@ function renderControls(): void {
   paperInput.setAttribute('aria-invalid', String(hasInput() && paper === null && searching === false));
   currentPageButton.hidden = paperInput.value.length === 0;
   currentPageButton.disabled = opening || copying;
-  element('open-label').textContent = t(opening ? 'opening' : searching ? 'searchArxiv' : 'openArxiv');
+  element('open-label').textContent = t(opening ? 'opening' : searching ? 'searchArxiv' : !hasInput() && paper?.source === 'arxiv' ? 'openAlphaXiv' : 'openArxiv');
   element('shortcut').textContent = shortcut || t('shortcutUnset');
   if (preferences !== null) {
     for (const radio of formatRadios) radio.checked = radio.value === preferences.format;
@@ -150,7 +150,7 @@ function renderPaper(): void {
   if (paper !== null) {
     paperId.textContent = getPaperId(paper, preferences?.version ?? 'current');
     source.textContent = t(manual ? 'inputSource' : paper.source === 'alphaxiv' ? 'sourceAlphaXiv' : 'sourceArxiv');
-    note.textContent = buildArxivUrl(paper, preferences?.format ?? 'abs', preferences?.version ?? 'current').replace('https://', '');
+    note.textContent = (manual ? buildArxivUrl : buildReaderUrl)(paper, preferences?.format ?? 'abs', preferences?.version ?? 'current').replace('https://', '');
     note.title = t(preferences?.version === 'latest' ? 'latestVersionNote' : 'versionNote');
   } else if (searchQuery !== null) {
     paperId.textContent = searchQuery;

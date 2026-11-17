@@ -139,9 +139,9 @@ export async function runToolbarChecks({ context, worker, extensionId, paper, op
   await dock.screenshot({ path: join(output, 'toolbar-expanded-crop.png') });
   await dock.locator('#dock-minimize').click();
   await grip.waitFor({ state: 'hidden' });
-  assert.equal(await dock.locator('a:visible, button:visible').count(), 1);
+  assert.equal(await dock.locator('a:visible, button:visible').count(), 2);
   await dock.screenshot({ path: join(output, 'toolbar-compact-crop.png') });
-  await link.click({ button: 'right' });
+  await dock.locator('#dock-expand').click();
   await grip.waitFor();
   await dock.locator('#dock-minimize').click();
   await grip.waitFor({ state: 'hidden' });
@@ -157,7 +157,7 @@ export async function runToolbarChecks({ context, worker, extensionId, paper, op
   await link.waitFor();
   const bounds = await dock.boundingBox();
   assert.ok(bounds.x >= 0 && bounds.y >= 0 && bounds.x + bounds.width <= 375.5 && bounds.y + bounds.height <= 540.5);
-  assert.equal(await dock.locator('a:visible, button:visible').count(), 1);
+  assert.equal(await dock.locator('a:visible, button:visible').count(), 2);
   const cdp = await context.newCDPSession(paper);
   const center = { x: bounds.x + bounds.width / 2, y: bounds.y + bounds.height / 2 };
   try {
@@ -180,5 +180,5 @@ export async function runToolbarChecks({ context, worker, extensionId, paper, op
   await popup.close();
   await paper.setViewportSize({ width: 1000, height: 700 });
   await paper.waitForFunction(() => document.querySelector('#back-to-arxiv-root').getBoundingClientRect().bottom >= 675);
-  console.log('PASS: dragging persists across reload, compact mode has one working paper button, drag does not navigate, resizing keeps it visible, and popup restores the toolbar.');
+  console.log('PASS: dragging persists across reload, compact mode has working paper and expand buttons, drag does not navigate, resizing keeps it visible, and popup restores the toolbar.');
 }

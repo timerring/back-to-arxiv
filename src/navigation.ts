@@ -1,4 +1,4 @@
-import { buildArxivUrl, parsePaperInput, parsePaperUrl, type Paper, type ReadingFormat } from './paper';
+import { buildReaderUrl, buildArxivUrl, parsePaperInput, parsePaperUrl, type Paper, type ReadingFormat } from './paper';
 import { getPreferences, type Preferences } from './settings';
 import { translate } from './i18n';
 
@@ -14,7 +14,9 @@ export async function openPaperTab(tab: chrome.tabs.Tab, format?: ReadingFormat)
   if (paper === null) {
     throw new NavigationError(translate('unsupportedPage', preferences.language));
   }
-  const url = buildArxivUrl(paper, format ?? preferences.format, preferences.version);
+  const url = format === undefined
+    ? buildReaderUrl(paper, preferences.format, preferences.version)
+    : buildArxivUrl(paper, format, preferences.version);
   if (preferences.openInNewTab) {
     await chrome.tabs.create({ url, active: true, openerTabId: tab.id, index: currentTab.index + 1, windowId: currentTab.windowId });
   } else {

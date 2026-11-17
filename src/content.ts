@@ -1,4 +1,4 @@
-import { buildArxivUrl, buildMarkdownLink, getPaperId, isReadingFormat, parsePaperUrl, type Paper, type ReadingFormat } from './paper';
+import { buildReaderUrl, buildArxivUrl, buildMarkdownLink, getPaperId, isReadingFormat, parsePaperUrl, type Paper, type ReadingFormat } from './paper';
 import { formatLabel, localize, resolveLocale, translate, type MessageKey } from './i18n';
 import { DEFAULT_PREFERENCES, getPreferences, getToolbarLayout, normalizePreferences, normalizeToolbarPosition, setToolbarMinimized, type Preferences } from './settings';
 import { alignDockPanel, attachDockMovement } from './toolbar-layout';
@@ -11,28 +11,32 @@ shadow.innerHTML = `
     :host { all: initial; position: fixed; width: max-content; right: 24px; bottom: 24px; z-index: 2147483647; color-scheme: light; }
     * { box-sizing: border-box; }
     [hidden] { display: none !important; }
-    .dock { display: flex; align-items: center; max-width: calc(100vw - 32px); padding: 5px; background: #fffdf8; border: 1px solid #e4dcd2; border-radius: 15px; box-shadow: 0 5px 24px #30241d20, 0 1px 3px #30241d10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    .dock { display: flex; align-items: center; max-width: calc(100vw - 32px); padding: 4px; background: #fffdf8; border: 1px solid #e4dcd2; border-radius: 12px; box-shadow: 0 5px 24px #30241d20, 0 1px 3px #30241d10; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
     .open-actions { display: flex; flex: 1; min-width: 0; }
-    .open-link { display: flex; align-items: center; flex: 1; min-width: 0; gap: 11px; min-height: 44px; padding: 6px 12px 6px 11px; border-radius: 10px 0 0 10px; background: #933c35; color: #fffaf3; text-decoration: none; transition: background 120ms ease; }
+    .open-link { display: flex; align-items: center; flex: 1; min-width: 0; gap: 8px; min-height: 36px; padding: 4px 9px 4px 8px; border-radius: 10px 0 0 10px; background: #933c35; color: #fffaf3; text-decoration: none; transition: background 120ms ease; }
     .open-link:hover, .open-toggle:hover { background: #7d302b; color: #fffaf3; }
-    .words { display: flex; flex-direction: column; min-width: 0; gap: 2px; }
-    .label { font-size: 13px; font-weight: 650; line-height: 18px; }
-    .detail { font-size: 10px; line-height: 14px; letter-spacing: .2px; color: #f2d6cd; overflow-wrap: anywhere; }
+    .words { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+    .label { font-size: 12px; font-weight: 650; line-height: 16px; }
+    .detail { display: none; font-size: 10px; line-height: 12px; letter-spacing: .2px; color: #f2d6cd; overflow-wrap: anywhere; }
     svg { display: block; flex: none; }
-    button { display: grid; place-items: center; flex: none; width: 42px; height: 44px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #745e52; cursor: pointer; }
+    .open-link > svg { width: 17px; height: 17px; }
+    button { display: grid; place-items: center; flex: none; width: 34px; height: 36px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: #745e52; cursor: pointer; }
     button:hover { background: #f2eae0; color: #933c35; }
     button:disabled { opacity: .5; cursor: default; }
-    .menu-toggle { width: 28px; }
-    #dock-grip, #dock-minimize { width: 24px; }
+    .menu-toggle { width: 24px; }
+    #dock-grip, #dock-minimize { width: 20px; }
     #dock-grip { cursor: grab; color: #927d71; }
     #dock-grip, .open-link { touch-action: none; user-select: none; }
     :host([data-dragging]) #dock-grip, :host([data-dragging]) .open-link { cursor: grabbing; }
     .compact-name { display: none; }
     :host([data-minimized]) .dock { padding: 0; border: 0; border-radius: 10px; }
-    :host([data-minimized]) .open-link { min-height: 40px; gap: 6px; padding: 0 12px; border-radius: 10px; }
+    :host([data-minimized]) .open-link { min-height: 34px; gap: 6px; padding: 0 10px; border-radius: 10px; }
     :host([data-minimized]) .compact-name { display: inline; font-size: 13px; font-weight: 650; }
     :host([data-minimized]) .words, :host([data-minimized]) .dock button { display: none; }
-    .open-toggle { align-self: stretch; height: auto; min-height: 44px; border-left: 1px solid #fffaf32b; border-radius: 0 10px 10px 0; background: #933c35; color: #fffaf3; }
+    #dock-expand { display: none; }
+    :host([data-minimized]) #dock-expand { display: grid; width: 26px; height: 34px; border-left: 1px solid #e4dcd2; border-radius: 0 10px 10px 0; }
+    :host([data-minimized]) .open-link { border-radius: 10px 0 0 10px; }
+    .open-toggle { align-self: stretch; height: auto; min-height: 36px; border-left: 1px solid #fffaf32b; border-radius: 0 10px 10px 0; background: #933c35; color: #fffaf3; }
     a:focus-visible, button:focus-visible { outline: 3px solid #ba7864; outline-offset: 3px; }
     .action-menu { position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 1; width: 250px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 112px); overflow-y: auto; padding: 5px; border: 1px solid #e4dcd2; border-radius: 10px; background: #fffdf8; box-shadow: 0 5px 20px #30241d24; }
     .action-menu button, .action-menu a { display: block; width: 100%; height: auto; min-height: 36px; padding: 8px 10px; border-radius: 6px; text-align: left; text-decoration: none; color: #745e52; font: 12px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -61,6 +65,9 @@ shadow.innerHTML = `
     </button>
     <button id="copy-menu-toggle" class="menu-toggle" type="button" aria-label="More copy formats" data-i18n-aria-label="copyFormats" aria-haspopup="menu" aria-controls="copy-menu" aria-expanded="false">
       <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m6 12 4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <button id="dock-expand" type="button" data-i18n-title="dockExpand" data-i18n-aria-label="dockExpand">
+      <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 7 5 5 5-5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <button id="dock-minimize" type="button" data-i18n-title="dockMinimize" data-i18n-aria-label="dockMinimize">
       <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 10h10" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
@@ -141,6 +148,7 @@ async function changeMode(value: boolean): Promise<void> {
   }
 }
 
+shadow.querySelector<HTMLButtonElement>('#dock-expand')!.addEventListener('click', (event) => { if (event.isTrusted) void changeMode(false); });
 minimize.addEventListener('click', (event) => { if (event.isTrusted) void changeMode(true); });
 openLink.addEventListener('contextmenu', (event) => {
   if (!event.isTrusted || !minimized) return;
@@ -173,7 +181,9 @@ function announce(message: MessageKey): void {
 }
 
 function updateLink(link: HTMLAnchorElement, paper: Paper, format: ReadingFormat): void {
-  link.href = buildArxivUrl(paper, format, preferences.version);
+  link.href = link === openLink
+    ? buildReaderUrl(paper, format, preferences.version)
+    : buildArxivUrl(paper, format, preferences.version);
   link.target = preferences.openInNewTab ? '_blank' : '_self';
   link.rel = 'noopener noreferrer';
 }
@@ -186,7 +196,7 @@ function render(): void {
   }
   lastUrl = nextUrl;
   currentPaper = parsePaperUrl(nextUrl);
-  if (currentPaper?.source !== 'alphaxiv') {
+  if (currentPaper === null) {
     currentPaper = null;
     closeMenus();
     host.remove();
@@ -199,9 +209,18 @@ function render(): void {
   for (const link of openFormatLinks) {
     if (isReadingFormat(link.dataset.openFormat)) updateLink(link, currentPaper, link.dataset.openFormat);
   }
-  const label = formatLabel(preferences.format, preferences.language);
+  const toAlpha = currentPaper.source === 'arxiv';
+  copyButton.hidden = toAlpha;
+  copyMenu.toggle.hidden = toAlpha;
+  if (toAlpha) closeMenu(copyMenu);
+  const actionLabel = translate(toAlpha ? 'openAlphaXiv' : 'openArxiv', preferences.language);
+  openLink.setAttribute('aria-label', actionLabel);
+  shadow.querySelector<HTMLElement>('.label')!.textContent = actionLabel;
+  shadow.querySelector<HTMLElement>('.compact-name')!.textContent = toAlpha ? 'alphaXiv' : 'arXiv';
+  const label = toAlpha ? 'alphaXiv' : formatLabel(preferences.format, preferences.language);
   openLink.title = translate(preferences.openInNewTab ? 'dockOpenNew' : 'dockOpenCurrent', preferences.language, [label]);
-  if (minimized) openLink.title = translate('dockCompactHint', preferences.language);
+  if (toAlpha) openLink.title = translate(preferences.openInNewTab ? 'dockAlphaNew' : 'dockAlphaCurrent', preferences.language);
+  if (minimized) openLink.title = translate(toAlpha ? 'dockAlphaCompactHint' : 'dockCompactHint', preferences.language);
   detail.textContent = `${getPaperId(currentPaper, preferences.version)} · ${label}${preferences.version === 'latest' ? ` · ${translate('versionLatest', preferences.language)}` : ''}`;
   copyButton.disabled = copying;
   copyMenu.toggle.disabled = copying;
@@ -304,7 +323,7 @@ for (const link of [openLink, ...openFormatLinks]) {
 async function copyLink(format: CopyFormat): Promise<void> {
   const sourceUrl = location.href;
   const paper = parsePaperUrl(sourceUrl);
-  if (paper?.source !== 'alphaxiv' || copying) return;
+  if (paper === null || copying) return;
   const fromMenu = copyMenu.panel.hidden === false;
   const value = format === 'markdown'
     ? buildMarkdownLink(paper, preferences.version)

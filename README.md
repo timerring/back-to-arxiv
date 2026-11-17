@@ -4,7 +4,9 @@ English | [简体中文](README.zh-CN.md)
 
 A lightweight Chrome extension that opens alphaXiv papers and pasted paper links or identifiers on arXiv. Choose Abstract, PDF, or HTML, and copy clean links or Markdown for your notes. Built with Manifest V3 and TypeScript, with preferences stored locally in your browser.
 
-Version 0.9.0 lets you search arXiv by title or selected text and move the floating controls out of the way. Minimize them to one button when you just want to open the current paper.
+Version 0.10.0 adds bidirectional arXiv/alphaXiv navigation, including arXiv HTML Beta pages. The smaller toolbar hides its copy controls on arXiv and has a visible expand arrow when minimized.
+
+The main button and keyboard shortcut now switch between arXiv and alphaXiv. The dock appears on arXiv abstract and HTML Beta pages; use the popup or shortcut on PDF pages. Version and tab preferences apply in both directions. Format menu actions, manual input, context links, and copying still target arXiv. Refresh existing tabs on both sites after reloading the extension.
 
 ## Install in Chrome
 
@@ -29,7 +31,7 @@ See Chrome's official guide to [loading an unpacked extension](https://developer
 ## Use
 
 - **Page button:** Open the current alphaXiv paper on arXiv. The arrow beside Open offers Abstract, PDF, or HTML for that action only. The Copy button copies its abstract-page link; its menu offers three link formats and Markdown.
-- **Move or minimize the page controls.** Drag the handle to position the toolbar. Choose **Minimize toolbar** on the page or enable **Minimize floating toolbar** in the popup to show a single arXiv button. Drag the button to move it, click to open the paper, or right-click to expand. The popup also restores the full toolbar or resets its position. Chrome remembers this layout across papers.
+- **Move or minimize the page controls.** Drag the handle to position the toolbar. Choose **Minimize toolbar** on the page or enable **Minimize floating toolbar** in the popup to show the paper button and an expand arrow. Drag the button to move it, click to open the paper, or click the expand arrow to restore the toolbar. Right-clicking the paper button also expands it. The popup also restores the full toolbar or resets its position. Chrome remembers this layout across papers.
 - **Find a paper by title.** Enter a title or keywords in the popup and choose **Search arXiv**, or highlight text on a webpage and choose **Find selected text on arXiv** from the context menu. An exact supported reference opens directly. For a query, choose a match by title, authors, and first-submission year, then open Abstract, PDF, or HTML in a new tab.
 - **Toolbar popup:** Preview the paper identifier and destination URL, save your reading format, version, and tab preferences, or use the Open menu to choose a format just once.
 - **Paste a paper:** Enter a supported alphaXiv/arXiv URL, a modern or legacy arXiv identifier, `arXiv:1706.03762v3`, a single Markdown link, or an arXiv DOI in the popup. Preview updates as you type. Opening a manually entered paper always uses a new tab, keeping the source page open.
@@ -190,7 +192,7 @@ Refresh existing alphaXiv tabs after installing or reloading the extension. If t
 
 Run `npm run package:store` to create the extension ZIP and the complete listing kit in `release/`. Packaging requires Node.js 22.12.0+ and the `zip` / `unzip` commands included with macOS.
 
-Upload `back-to-arxiv-0.9.0.zip` as the extension. The separate `back-to-arxiv-0.9.0-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
+Upload `back-to-arxiv-0.10.0.zip` as the extension. The separate `back-to-arxiv-0.10.0-store-kit.zip` contains that ZIP, English/Chinese listing copy, screenshots, the store icon, permission explanations, reviewer steps, and a privacy-policy page. Each archive has a SHA-256 checksum.
 
 See [the submission guide](store/START-HERE.txt) for fields and assets. Use the public [privacy policy](https://timerring.com/back-to-arxiv/store/privacy-policy.html) in the Chrome Web Store's Privacy policy URL field. Confirm the publisher contact details before submitting. Support is available through [GitHub Issues](https://github.com/timerring/back-to-arxiv/issues).
 
@@ -236,7 +238,7 @@ dist/                 Generated Chrome extension
 | `activeTab` | Read the current paper URL when you invoke the extension or its shortcut |
 | `clipboardWrite` | Write a requested paper link, Markdown list, or generated BibTeX |
 | `contextMenus` | Open a chosen paper link or find a paper from text selected for the context-menu action |
-| The two alphaXiv HTTPS domains | Add page controls and follow navigation between papers |
+| The alphaXiv and arXiv HTTPS domains | Add page controls and follow navigation between papers |
 | Optional `https://export.arxiv.org/*` | Search by title or keywords, or fetch batch metadata, after optional Chrome authorization |
 
 URL parsing, deduplication, and export generation run in the browser. Current-page URLs, chosen context-menu link targets, pasted references, and fetched metadata are transient; drafts and metadata clear when their page closes or reloads. Reading preferences, the toolbar position, and its minimized state are saved locally. The only metadata-service session value is a pacing timestamp; no identifiers or responses are stored there.

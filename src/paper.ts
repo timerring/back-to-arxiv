@@ -136,3 +136,11 @@ export function buildArxivUrl(paper: Paper, format: ReadingFormat, version: Pape
 export function buildMarkdownLink(paper: Paper, version: PaperVersion = 'current'): string {
   return `[arXiv:${getPaperId(paper, version)}](${buildArxivUrl(paper, 'abs', version)})`;
 }
+
+/** Open the other reader; explicit format actions still select an arXiv format. */
+export function buildReaderUrl(paper: Paper, format: ReadingFormat, version: PaperVersion = 'current'): string {
+  if (!isReadingFormat(format)) throw new TypeError('The reading format must be abs, pdf or html.');
+  return paper.source === 'arxiv'
+    ? `https://www.alphaxiv.org/abs/${getPaperId(paper, version)}`
+    : buildArxivUrl(paper, format, version);
+}

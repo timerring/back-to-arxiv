@@ -1,7 +1,7 @@
 {
   "extName": { "message": "Back to arXiv" },
-  "extDescription": { "message": "Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut." },
-  "commandOpenArxiv": { "message": "Open the current paper on arXiv using your reading preferences" },
+  "extDescription": { "message": "Switch between arXiv and alphaXiv, including arXiv HTML. Keep versions, copy links, and use a shortcut." },
+  "commandOpenArxiv": { "message": "Switch the current paper between arXiv and alphaXiv" },
   "tagline": { "message": "Back to the original paper" },
   "currentPaper": { "message": "Current paper" },
   "identifyingSource": { "message": "Reading page" },
@@ -22,6 +22,7 @@
   "resetToolbarPosition": { "message": "Reset position" },
   "toolbarLayoutSaved": { "message": "Floating toolbar updated." },
   "dockDrag": { "message": "Drag to move, or use the arrow keys" },
+  "dockExpand": { "message": "Expand toolbar" },
   "dockMinimize": { "message": "Minimize toolbar" },
   "dockCompactHint": { "message": "Open arXiv · Drag to move · Right-click to expand" },
   "storageNote": { "message": "Preferences are saved in this browser" },
@@ -194,5 +195,9 @@
   "searchPagination": { "message": "Search results pages" },
   "searchRefine": { "message": "Only the first 200 results are available here. Refine your query to find more specific papers." },
   "searchLoadFailed": { "message": "Could not load reading preferences. This tab is using default settings." },
-  "searchHtmlNote": { "message": "HTML is experimental and may be unavailable for some paper versions." }
+  "searchHtmlNote": { "message": "HTML is experimental and may be unavailable for some paper versions." },
+  "openAlphaXiv": { "message": "Open alphaXiv" },
+  "dockAlphaNew": { "message": "Open alphaXiv in a new tab" },
+  "dockAlphaCurrent": { "message": "Open alphaXiv in this tab" },
+  "dockAlphaCompactHint": { "message": "Open alphaXiv · Drag to move · Right-click to expand" }
 }

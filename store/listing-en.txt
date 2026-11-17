@@ -7,10 +7,10 @@ Default listing language
 English
 
 Version
-0.9.0
+0.10.0
 
-Short description (matches the extension manifest; 118 characters)
-Open alphaXiv papers on arXiv as abstracts, PDFs, or experimental HTML. Keep versions, copy links, and use a shortcut.
+Short description (matches the extension manifest)
+Switch between arXiv and alphaXiv, including arXiv HTML. Keep versions, copy links, and use a shortcut.
 
 DETAILED DESCRIPTION — COPY THE TEXT BELOW
 
@@ -63,3 +63,5 @@ Local preferences and optional retrieval
 Reading format, version, tab behavior, language, floating toolbar position, and minimized state are saved locally. The background keeps only a request-pacing timestamp in session storage, not paper identifiers or API responses. Metadata fetches omit cookies and the referrer; arXiv receives the submitted query or selected identifiers and ordinary network information such as IP address and headers. Clipboard actions and Markdown/BibTeX downloads run only when requested. Drafts and fetched metadata stay in tab memory. Opening a paper navigates directly to arXiv.
 
 HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for paper readers.
+
+Version 0.10.0: Switch papers in both directions, including arXiv HTML Beta. A narrower toolbar hides copy controls on arXiv; a visible expand arrow restores minimized controls.

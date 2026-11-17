@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildArxivUrl, buildMarkdownLink, getPaperId, isPaperVersion, parsePaperInput, parsePaperUrl, type Paper, type PaperVersion, type ReadingFormat } from '../src/paper.ts';
+import { buildReaderUrl, buildArxivUrl, buildMarkdownLink, getPaperId, isPaperVersion, parsePaperInput, parsePaperUrl, type Paper, type PaperVersion, type ReadingFormat } from '../src/paper.ts';
 
 test('all supported alphaXiv routes resolve to the same paper and preserve its version', () => {
   for (const host of ['alphaxiv.org', 'www.alphaxiv.org']) {
@@ -271,4 +271,14 @@ test('DOI input rejects synthetic versions, other namespaces, hostile resolvers 
     'https://doi.org/?doi=10.48550/arXiv.1706.03762',
     '10.48550/arXiv.1706.03762\n10.48550/arXiv.2401.12345',
   ]) assert.equal(parsePaperInput(input), null, input);
+});
+
+test('reader switching keeps versions and removes source queries and HTML section anchors', () => {
+  for (const host of ['arxiv.org', 'www.arxiv.org']) {
+    const paper = parsePaperUrl(`https://${host}/html/2401.12345v2?source=test#S2`)!;
+    assert.equal(buildReaderUrl(paper, 'html'), 'https://www.alphaxiv.org/abs/2401.12345v2');
+    const reverse = parsePaperUrl(buildReaderUrl(paper, 'html'))!;
+    assert.equal(buildReaderUrl(reverse, 'html'), 'https://arxiv.org/html/2401.12345v2');
+    assert.equal(buildReaderUrl(paper, 'pdf', 'latest'), 'https://www.alphaxiv.org/abs/2401.12345');
+  }
 });

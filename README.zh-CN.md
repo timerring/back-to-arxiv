@@ -4,7 +4,9 @@
 
 从 alphaXiv 一键回到 arXiv 原文，也可粘贴论文链接或编号的 Chrome 扩展。支持摘要、PDF、HTML，以及纯链接和 Markdown 复制。采用 Manifest V3 + TypeScript，设置保存在浏览器本地。
 
-0.9.0 支持用标题或网页选中文字查找 arXiv 论文。阅读时可将浮条拖到合适的位置，也可收成一个按钮，点击即可打开当前论文。
+0.10.0 支持 arXiv 与 alphaXiv 双向跳转，包括 arXiv HTML Beta 页面。浮条更紧凑，在 arXiv 页面隐藏复制控件，折叠后可点击右侧箭头展开。
+
+主按钮及快捷键现在支持 arXiv ↔ alphaXiv 双向跳转。arXiv 摘要页和 HTML Beta 页面均显示浮条；PDF 页面可使用扩展面板或快捷键。版本和标签页偏好继续生效。打开菜单仍用于选择 arXiv 摘要、PDF 或 HTML；手动输入、右键链接及复制仍以 arXiv 为目标。更新扩展后请刷新两站已有标签页。
 
 ## 安装到 Chrome
 
@@ -29,7 +31,7 @@ Chrome 的官方加载说明：[Load an unpacked extension](https://developer.ch
 ## 使用
 
 - **页面按钮**：在 alphaXiv 论文页点击“打开 arXiv”，旁边的打开菜单可为本次操作选择摘要、PDF 或 HTML。主复制按钮复制摘要页链接，复制菜单提供三种格式及 Markdown。
-- **移动和最小化浮条**：拖动把手可移动浮条。点击浮条上的“最小化浮条”，或在面板勾选“浮条只显示 arXiv 按钮”，页面就只保留一个按钮。拖动按钮可以换位置，单击打开论文，右键恢复完整浮条。面板也可以展开浮条或重置位置。换论文后仍沿用保存的布局。
+- **移动和最小化浮条**：拖动把手可移动浮条。点击浮条上的“最小化浮条”，或在面板勾选“浮条只显示跳转按钮”，页面只保留跳转按钮和展开箭头。拖动按钮可以换位置，单击打开论文，点击右侧展开箭头或右键恢复完整浮条。面板也可以展开浮条或重置位置。换论文后仍沿用保存的布局。
 - **按标题找论文**：在面板输入标题或关键词，点击“搜索 arXiv”，或选中网页文字后使用右键查找。受支持的完整论文引用直接打开；标题或关键词会打开结果页，可按标题、作者和首次提交年份选定论文，在新标签页打开摘要、PDF 或 HTML。
 - **工具栏面板**：预览论文编号和目标网址，保存阅读格式、版本和标签页偏好，或通过打开菜单临时选择一次格式。
 - **粘贴论文**：输入受支持的 alphaXiv/arXiv 链接、现代或旧式 arXiv 编号、`arXiv:1706.03762v3`，也可粘贴单个 Markdown 链接或 arXiv DOI。面板随输入即时更新预览，手动输入的论文始终在新标签页打开，保留来源页面。
@@ -192,7 +194,7 @@ CitationJS 和 XML 测试支持均仅用于开发，不随扩展打包。
 
 运行 `npm run package:store`，即可在 `release/` 生成扩展 ZIP 和完整上架资料包。打包需要 Node.js 22.12.0+ 以及 macOS 已内置的 `zip` / `unzip` 命令。
 
-扩展上传文件为 `back-to-arxiv-0.9.0.zip`。另一个 `back-to-arxiv-0.9.0-store-kit.zip` 包含安装包、中英文介绍、截图、图标、权限说明、审核测试步骤和隐私政策网页；每个 ZIP 都有 SHA-256 校验文件。
+扩展上传文件为 `back-to-arxiv-0.10.0.zip`。另一个 `back-to-arxiv-0.10.0-store-kit.zip` 包含安装包、中英文介绍、截图、图标、权限说明、审核测试步骤和隐私政策网页；每个 ZIP 都有 SHA-256 校验文件。
 
 填写说明见[上架指南](store/START-HERE.txt)。在 Chrome Web Store 的 Privacy policy URL 字段填写公开的[隐私政策网址](https://timerring.com/back-to-arxiv/store/privacy-policy.html)，提交前确认开发者联系方式。公开支持入口为 [GitHub Issues](https://github.com/timerring/back-to-arxiv/issues)。
 
@@ -236,7 +238,7 @@ dist/                构建生成的 Chrome 扩展
 | `activeTab` | 用户点击插件或触发快捷键时，读取当前页的论文地址 |
 | `clipboardWrite` | 用户点击复制时写入选定的论文链接、Markdown 清单或生成的 BibTeX |
 | `contextMenus` | 打开用户选定的论文链接，或根据右键操作选中的文字找论文 |
-| alphaXiv 的两个 HTTPS 域名 | 注入页面按钮，跟随站内论文切换 |
+| alphaXiv 和 arXiv 的 HTTPS 域名 | 注入页面按钮，跟随站内论文切换 |
 | 可选 `https://export.arxiv.org/*` | 经 Chrome 可选授权后按需查询标题、关键词或批量论文元数据 |
 
 地址解析、去重与导出生成均在浏览器内执行。当前页网址、主动选择的右键目标、输入的引用及已获取的元数据均临时使用；草稿和元数据在相应页面关闭或刷新后清空。本地持久保存阅读偏好、浮条位置和最小化状态，后台会话存储仅保存限速时间戳，不包含论文编号或响应。

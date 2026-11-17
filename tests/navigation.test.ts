@@ -144,7 +144,7 @@ test('latest-version preference applies to both current and new-tab navigation',
   assert.equal(updates[0]?.properties.url, 'https://arxiv.org/html/1706.03762');
   preferences.openInNewTab = true;
   await navigate(paperTab({ url: 'https://arxiv.org/pdf/hep-th/9901001v2.pdf' }));
-  assert.equal(creates[0]?.url, 'https://arxiv.org/html/hep-th/9901001');
+  assert.equal(creates[0]?.url, 'https://www.alphaxiv.org/abs/hep-th/9901001');
 });
 
 test('context link uses the clicked URL from an unrelated source and opens a neighboring new tab', async () => {
@@ -238,3 +238,17 @@ test('invalid explicit input and temporary formats leave tabs intact', async () 
   assert.deepEqual(creates, []);
   assert.deepEqual(updates, []);
 });
+
+for (const route of ['abs', 'pdf', 'html']) {
+  test(`arXiv ${route} switches to alphaXiv and explicit formats stay on arXiv`, async () => {
+    latestTab = paperTab({ url: `https://arxiv.org/${route}/2401.12345v2?source=test#S1` });
+    await openPaperTab(latestTab);
+    assert.equal(updates[0]?.properties.url, 'https://www.alphaxiv.org/abs/2401.12345v2');
+    await openPaperTab(latestTab, 'html');
+    assert.equal(updates[1]?.properties.url, 'https://arxiv.org/html/2401.12345v2');
+    preferences.openInNewTab = true;
+    preferences.version = 'latest';
+    await openPaperTab(latestTab);
+    assert.equal(creates[0]?.url, 'https://www.alphaxiv.org/abs/2401.12345');
+  });
+}
