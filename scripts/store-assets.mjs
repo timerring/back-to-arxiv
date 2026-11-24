@@ -52,9 +52,9 @@ const styles = `
 const arrow = `<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const sharedHead = (language, title, css) => `<!doctype html><html lang="${language}"><head><meta charset="utf-8"><title>${title}</title><style>${css}</style></head>`;
 function showcase(language, copy) {
-  return `${sharedHead(language, `Back to arXiv — ${copy.title}`, styles)}<body><main class="showcase">
+  return `${sharedHead(language, `Kitleaf — ${copy.title}`, styles)}<body><main class="showcase">
     <div class="right" aria-hidden="true"></div>
-    <div class="brand"><img src="../assets/icon-128.png" alt=""><span>Back to arXiv</span></div>
+    <div class="brand"><img src="../assets/icon-128.png" alt=""><span>Kitleaf</span></div>
     <section class="copy"><p class="eyebrow">${copy.eyebrow}</p><h1>${copy.headline}</h1><p class="intro">${copy.intro}</p>
       <ul class="features">${copy.features.map((feature) => `<li>${arrow}<span>${feature}</span></li>`).join('')}</ul>
     </section>
@@ -70,26 +70,26 @@ const artworks = [
     html: showcase('en', {
       title: 'Original papers, one click away', eyebrow: 'A shortcut for your research',
       headline: 'Back to the<br><em>original paper.</em>',
-      intro: 'Open alphaXiv papers on arXiv.<br>Choose the way you like to read.',
+      intro: 'Switch between arXiv and alphaXiv.<br>Choose the way you like to read.',
       features: ['Move the page controls or keep one button', 'Find papers by title or selected text', 'Export reading lists and BibTeX'],
       foot: 'Your next read starts with the original.', capture: 'popup-en.png',
-      alt: 'Actual Back to arXiv popup in English', label: 'Actual extension interface · English',
+      alt: 'Actual Kitleaf popup in English', label: 'Actual extension interface · English',
     }),
   },
   {
     name: 'showcase-zh-CN', width: 1280, height: 800,
     html: showcase('zh-CN', {
       title: '回到论文原文', eyebrow: '让论文阅读更顺手',
-      headline: '从 alphaXiv<br><em>回到论文原文</em>',
-      intro: '一键打开对应的 arXiv 论文。<br>选择你习惯的阅读方式。',
+      headline: '论文阅读<br><em>自由切换</em>',
+      intro: 'arXiv 与 alphaXiv 一键互跳。<br>选择你习惯的阅读方式。',
       features: ['拖动浮条，或只保留一个按钮', '输入标题或选中文字查找论文', '导出带标题的清单与 BibTeX'],
       foot: '从原文开始，继续你的研究。', capture: 'popup-zh-CN.png',
-      alt: 'Back to arXiv 的真实简体中文弹窗', label: '真实插件界面 · 简体中文',
+      alt: 'Kitleaf 的真实简体中文弹窗', label: '真实插件界面 · 简体中文',
     }),
   },
   {
     name: 'promo-small', width: 440, height: 280,
-    html: `${sharedHead('en', 'Back to arXiv', `
+    html: `${sharedHead('en', 'Kitleaf', `
       *{box-sizing:border-box}html,body{margin:0;width:440px;height:280px;overflow:hidden;background:#933c35;color:#fff8ec}
       body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
       main{position:relative;width:440px;height:280px;padding:26px 30px}
@@ -98,7 +98,7 @@ const artworks = [
       h1{position:relative;margin:23px 0 17px;font:41px/1.05 Georgia,serif;letter-spacing:-1.2px}
       p{margin:0;font-size:15px;color:#f2c9b4;letter-spacing:.25px}
       .orbit{position:absolute;width:370px;height:370px;left:300px;top:15px;border:1px solid #f0c2a744;border-radius:50%}
-    `)}<body><main><div class="orbit" aria-hidden="true"></div><div class="brand"><span class="mark"><img src="../assets/icon-128.png" alt=""></span>Back to arXiv</div><h1>Back to the<br>original paper.</h1><p>alphaXiv → arXiv</p></main></body></html>`,
+    `)}<body><main><div class="orbit" aria-hidden="true"></div><div class="brand"><span class="mark"><img src="../assets/icon-128.png" alt=""></span>Kitleaf</div><h1>Back to the<br>original paper.</h1><p>arXiv ↔ alphaXiv</p></main></body></html>`,
   },
 ];
 

@@ -1,10 +1,10 @@
-Back to arXiv 0.10.0 — reviewer test instructions
+Kitleaf 0.10.0 — reviewer test instructions
 
 Access and purpose
 The extension opens and copies arXiv paper links from supported alphaXiv/arXiv pages, hyperlinks, and paper URLs or identifiers entered in the popup. Testing uses public paper pages and requires Chrome 120 or later.
 
 1. Initial state
-Install and pin Back to arXiv. Open or refresh:
+Install and pin Kitleaf. Open or refresh:
 https://www.alphaxiv.org/abs/1706.03762v7
 Expected: Open arXiv, Copy, and their menus at the lower right. Fresh defaults: English, Abstract, Current version, Open in a new tab off. The popup input starts empty and its preview follows the current page.
 

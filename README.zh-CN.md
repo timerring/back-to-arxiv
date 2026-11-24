@@ -1,4 +1,4 @@
-# Back to arXiv
+# Kitleaf
 
 [English](README.md) | 简体中文
 
@@ -25,7 +25,7 @@ npm run build
 2. 打开右上角的 **开发者模式**。
 3. 点击 **加载已解压的扩展程序**。
 4. 选择解压后的扩展文件夹或源码构建生成的 **dist 文件夹**。
-5. 点击浏览器工具栏的扩展程序图标，将 **Back to arXiv** 固定到工具栏。
+5. 点击浏览器工具栏的扩展程序图标，将 **Kitleaf** 固定到工具栏。
 6. 打开或刷新一篇 alphaXiv 论文，右下角会出现 **Open arXiv** 按钮。插件界面默认使用英文，可在工具栏面板的语言选项中切换为简体中文。
 
 Chrome 的官方加载说明：[Load an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked)。

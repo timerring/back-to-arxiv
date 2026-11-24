@@ -1,4 +1,4 @@
-# Back to arXiv
+# Kitleaf
 
 English | [简体中文](README.zh-CN.md)
 
@@ -25,7 +25,7 @@ The build creates a `dist/` directory containing the unpacked extension.
 2. Enable **Developer mode**.
 3. Click **Load unpacked**.
 4. Select the extracted extension folder or the generated **dist** directory.
-5. Pin **Back to arXiv** from Chrome's extensions menu.
+5. Pin **Kitleaf** from Chrome's extensions menu.
 6. Open or refresh an alphaXiv paper. An **Open arXiv** button appears in the lower-right corner.
 
 See Chrome's official guide to [loading an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked).

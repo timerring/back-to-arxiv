@@ -1,7 +1,7 @@
 STORE METADATA
 
 Title
-Back to arXiv
+Kitleaf
 
 Default listing language
 English
@@ -62,6 +62,6 @@ The interface starts in English. Choose English, 简体中文, or Follow browser
 Local preferences and optional retrieval
 Reading format, version, tab behavior, language, floating toolbar position, and minimized state are saved locally. The background keeps only a request-pacing timestamp in session storage, not paper identifiers or API responses. Metadata fetches omit cookies and the referrer; arXiv receives the submitted query or selected identifiers and ordinary network information such as IP address and headers. Clipboard actions and Markdown/BibTeX downloads run only when requested. Drafts and fetched metadata stay in tab memory. Opening a paper navigates directly to arXiv.
 
-HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Back to arXiv is an independent utility for paper readers.
+HTML availability depends on arXiv's support for the paper and version. Abstract and PDF remain available as reading choices. Kitleaf is an independent utility for paper readers.
 
 Version 0.10.0: Switch papers in both directions, including arXiv HTML Beta. A narrower toolbar hides copy controls on arXiv; a visible expand arrow restores minimized controls.

@@ -47,7 +47,7 @@ shadow.innerHTML = `
     @media (max-width: 600px) { :host { right: 16px; bottom: 16px; } }
     @media (prefers-reduced-motion: reduce) { a { transition: none; } }
   </style>
-  <div class="dock" role="group" aria-label="Back to arXiv" data-i18n-aria-label="extName">
+  <div class="dock" role="group" aria-label="Kitleaf" data-i18n-aria-label="extName">
     <button id="dock-grip" type="button" data-i18n-title="dockDrag" data-i18n-aria-label="dockDrag">
       <svg width="10" height="18" viewBox="0 0 10 18" fill="currentColor" aria-hidden="true"><circle cx="3" cy="4" r="1.3"/><circle cx="7" cy="4" r="1.3"/><circle cx="3" cy="9" r="1.3"/><circle cx="7" cy="9" r="1.3"/><circle cx="3" cy="14" r="1.3"/><circle cx="7" cy="14" r="1.3"/></svg>
     </button>
@@ -144,7 +144,7 @@ async function changeMode(value: boolean): Promise<void> {
     applyMinimized(value);
     (value ? openLink : minimize).focus();
   } catch (error) {
-    console.info('Back to arXiv: could not save toolbar mode', error);
+    console.info('Kitleaf: could not save toolbar mode', error);
   }
 }
 
@@ -386,5 +386,5 @@ async function start(): Promise<void> {
 }
 
 void start().catch((error: unknown) => {
-  console.info(`Back to arXiv: ${translate('reloadExtension', preferences.language)}`, error);
+  console.info(`Kitleaf: ${translate('reloadExtension', preferences.language)}`, error);
 });

@@ -1,4 +1,4 @@
-# Back to arXiv CI 授权配置
+# Kitleaf CI 授权配置
 
 已从开发者后台核实并写入 GitHub Actions Variables：
 
@@ -36,7 +36,7 @@ principalSet://iam.googleapis.com/projects/88342373631/locations/global/workload
 
 Google Auth action 取得有效期 30 分钟、scope 为 `https://www.googleapis.com/auth/chromewebstore` 的 access token，不创建或下载 JSON 密钥，不存 refresh token。构建测试作业没有 `id-token: write`；独立发布作业只有检查通过后才执行。
 
-**权限边界：** Chrome Web Store 的服务账号授权作用于整个 Publisher，并不能限制到单个扩展。此服务账号可管理该 Publisher 下的其他扩展；仓库工作流按固定条目 ID 只操作 Back to arXiv，但这不是商店端的条目级安全隔离。仓库可信发布工作流维护者应被视为拥有此 Publisher 的发布能力。修改该工作流、创建发布标签和执行手动发布的权限应仅给可信维护者。
+**权限边界：** Chrome Web Store 的服务账号授权作用于整个 Publisher，并不能限制到单个扩展。此服务账号可管理该 Publisher 下的其他扩展；仓库工作流按固定条目 ID 只操作 Kitleaf，但这不是商店端的条目级安全隔离。仓库可信发布工作流维护者应被视为拥有此 Publisher 的发布能力。修改该工作流、创建发布标签和执行手动发布的权限应仅给可信维护者。
 
 ## 配置与验证记录
 

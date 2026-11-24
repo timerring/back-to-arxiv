@@ -62,7 +62,7 @@ export function attachDockMovement(host: HTMLElement, grip: HTMLElement, link: H
 
   function remember(position: ToolbarPosition): void {
     saved = position;
-    void setToolbarPosition(position).catch((error: unknown) => console.info('Back to arXiv: could not save toolbar position', error));
+    void setToolbarPosition(position).catch((error: unknown) => console.info('Kitleaf: could not save toolbar position', error));
   }
 
   for (const target of [grip, link]) {

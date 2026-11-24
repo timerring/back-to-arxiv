@@ -15,7 +15,7 @@ export const PAPER_LINK_PATTERNS = [
 ];
 
 function reportFailure(error: unknown): void {
-  console.info('Back to arXiv:', error instanceof Error ? error.message : error);
+  console.info('Kitleaf:', error instanceof Error ? error.message : error);
 }
 
 /** Chrome retains menu items across service-worker lifetimes. Update or create each item. */

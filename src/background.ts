@@ -18,6 +18,6 @@ chrome.commands.onCommand.addListener((command, tab) => {
     if (activeTab) await openPaperTab(activeTab);
   })().catch((error: unknown) => {
     // The popup explains supported pages and exposes the same action.
-    console.info('Back to arXiv:', error instanceof Error ? error.message : error);
+    console.info('Kitleaf:', error instanceof Error ? error.message : error);
   });
 });

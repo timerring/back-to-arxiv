@@ -1,4 +1,4 @@
-Back to arXiv — store artwork sources
+Kitleaf — store artwork sources
 
 popup-en.png and popup-zh-CN.png are authentic extension popup captures
 from the browser integration suite. The artwork displays these captures as

@@ -1,4 +1,4 @@
-BACK TO ARXIV 0.10.0 — PRIVACY TAB FILLING GUIDE
+KITLEAF 0.10.0 — PRIVACY TAB FILLING GUIDE
 Updated from the implementation on 2026-11-06; Chrome Web Store references below.
 
 SINGLE PURPOSE — PASTE THIS

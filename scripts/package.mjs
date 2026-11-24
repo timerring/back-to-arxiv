@@ -67,7 +67,7 @@ for (const file of files.filter((path) => path.startsWith('_locales/'))) {
   const resolve = (value) => value.replace(/__MSG_([A-Za-z0-9_]+)__/g, (_match, key) => catalog[key]?.message ?? fallback[key]?.message ?? '');
   const description = resolve(manifest.description);
   assert.ok(description.length > 0 && description.length <= 132, `${file}: description must be 1–132 characters`);
-  assert.equal(resolve(manifest.name), 'Back to arXiv', `${file}: extension name must match the store listing`);
+  assert.equal(resolve(manifest.name), 'Kitleaf', `${file}: extension name must match the store listing`);
 }
 
 await mkdir(release, { recursive: true });

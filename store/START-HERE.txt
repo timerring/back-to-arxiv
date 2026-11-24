@@ -1,4 +1,4 @@
-Back to arXiv 0.10.0 — Chrome Web Store 上架资料
+Kitleaf 0.10.0 — Chrome Web Store 上架资料
 准备日期：2026-11-06
 
 1. 上传哪个文件
@@ -12,7 +12,7 @@ back-to-arxiv-0.10.0-store-kit.zip 是包含全部材料的资料包。先解压
 
 2. 商店信息填写
 
-名称：Back to arXiv
+名称：Kitleaf
 默认语言：English
 中文本地化：简体中文
 分类建议：Tools（工具），与论文链接转换功能相符。

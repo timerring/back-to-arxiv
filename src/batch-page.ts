@@ -372,7 +372,7 @@ function downloadExport(kind: 'markdown' | 'bibtex'): void {
     const text = kind === 'markdown' ? currentMarkdown() : currentBibtex();
     url = URL.createObjectURL(new Blob([text], { type: kind === 'markdown' ? 'text/markdown;charset=utf-8' : 'application/x-bibtex;charset=utf-8' }));
     link.href = url;
-    link.download = `back-to-arxiv-reading-list.${kind === 'markdown' ? 'md' : 'bib'}`;
+    link.download = `kitleaf-reading-list.${kind === 'markdown' ? 'md' : 'bib'}`;
     link.hidden = true;
     document.body.append(link);
     link.click();
